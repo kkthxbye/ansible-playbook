@@ -1,0 +1,6 @@
+---
+- import_playbook: provision.yaml
+- import_playbook: sudo.yaml
+- import_playbook: ssh.yaml
+- import_playbook: oh_my_posh.yaml
+- import_playbook: pwsh_profile.yaml

@@ -1,0 +1,54 @@
+- hosts: localhost
+  connection: local
+  become: yes
+
+  vars:
+    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+    posh_bin_dir: "{{ home }}/.local/bin"
+    posh_bin: "{{ posh_bin_dir }}/oh-my-posh"
+    posh_theme_dir: "{{ home }}/.poshthemes"
+    posh_theme_url: "https://raw.githubusercontent.com/kkthxbye/oh-my-posh-theme/master/kkthxbye.omp.json"
+    posh_theme_dest: "{{ posh_theme_dir }}/kkthxbye.omp.json"
+
+  tasks:
+    - name: Ensure unzip is installed
+      apt:
+        name: unzip
+        state: present
+        update_cache: yes
+
+    - name: Ensure ~/.local/bin exists
+      become: false
+      file:
+        path: "{{ posh_bin_dir }}"
+        state: directory
+        mode: '0755'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Ensure ~/.poshthemes exists
+      become: false
+      file:
+        path: "{{ posh_theme_dir }}"
+        state: directory
+        mode: '0755'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Install oh-my-posh only if missing
+      become: false
+      shell: |
+        curl -s https://ohmyposh.dev/install.sh | bash -s
+      args:
+        executable: /bin/bash
+      when: not posh_bin is exists
+
+    - name: Download oh-my-posh theme
+      become: false
+      get_url:
+        url: "{{ posh_theme_url }}"
+        dest: "{{ posh_theme_dest }}"
+        mode: '0644'
+        owner: "{{ user }}"
+        group: "{{ user }}"

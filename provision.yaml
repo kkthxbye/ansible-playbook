@@ -1,0 +1,44 @@
+- hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name:
+          - wget
+          - apt-transport-https
+          - software-properties-common
+        state: present
+        update_cache: yes
+
+    - name: Read OS release info
+      ansible.builtin.shell: |
+        . /etc/os-release
+        echo $VERSION_ID
+      register: ubuntu_version
+      changed_when: false
+
+    - name: Download Microsoft package repo .deb
+      ansible.builtin.get_url:
+        url: "https://packages.microsoft.com/config/ubuntu/{{ ubuntu_version.stdout }}/packages-microsoft-prod.deb"
+        dest: "/tmp/packages-microsoft-prod.deb"
+        mode: '0644'
+
+    - name: Install Microsoft package repo .deb
+      ansible.builtin.command: dpkg -i /tmp/packages-microsoft-prod.deb
+      args:
+
+    - name: Remove downloaded .deb
+      ansible.builtin.file:
+        path: "/tmp/packages-microsoft-prod.deb"
+        state: absent
+
+    - name: Update apt cache after adding Microsoft repo
+      apt:
+        update_cache: yes
+
+    - name: Install PowerShell
+      apt:
+        name: powershell
+        state: present

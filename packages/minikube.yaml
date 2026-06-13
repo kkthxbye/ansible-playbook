@@ -1,0 +1,21 @@
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    # set to a specific version (e.g. "v1.36.0") or "latest" for the current release
+    minikube_version: "latest"
+
+  tasks:
+    - name: Download minikube binary
+      get_url:
+        url: "https://storage.googleapis.com/minikube/releases/{{ minikube_version }}/minikube-linux-amd64"
+        dest: "/usr/local/bin/minikube"
+        mode: '0755'
+        force: yes
+
+    - name: Ensure minikube is executable
+      file:
+        path: "/usr/local/bin/minikube"
+        mode: '0755'
+        state: file

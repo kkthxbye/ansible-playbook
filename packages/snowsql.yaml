@@ -1,0 +1,34 @@
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    # version of the SnowSQL to install
+    bootstrap_version: "1.4"
+    snowsql_version: "1.4.5"
+    snowsql_install_script: "/tmp/snowsql-{{ snowsql_version }}-linux_x86_64.bash"
+    snowsql_bin_path: "/usr/local/bin/snowsql"
+
+  tasks:
+    - name: Download SnowSQL bash installer
+      get_url:
+        url: "https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/{{ bootstrap_version }}/linux_x86_64/snowsql-{{ snowsql_version }}-linux_x86_64.bash"
+        dest: "{{ snowsql_install_script }}"
+        mode: '0755'
+
+    - name: Install SnowSQL using bash script
+      shell: |
+        export SNOWSQL_DEST=/usr/local/bin
+        bash {{ snowsql_install_script }}
+      args:
+        creates: "{{ snowsql_bin_path }}"
+
+    - name: Verify SnowSQL installation
+      command: "{{ snowsql_bin_path }} --version"
+      register: snowsql_ver
+      changed_when: false
+
+    - name: Display SnowSQL version
+      debug:
+        var: snowsql_ver.stdout
+

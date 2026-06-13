@@ -73,11 +73,11 @@
         state: present
 
     - name: Install PSFzf PowerShell module
-      command: pwsh -Command "Install-Module -Name PSFzf -Force -Scope CurrentUser"
+      command: pwsh -Command "Install-Module -Name PSFzf -Force"
       become_user: "{{ user }}"
       become: yes
 
     - name: Install powershell-yaml module
-      command: pwsh -Command "Install-Module -Name powershell-yaml -Force -Scope CurrentUser"
+      command: pwsh -Command "Install-Module -Name powershell-yaml -Force"
       become_user: "{{ user }}"
       become: yes

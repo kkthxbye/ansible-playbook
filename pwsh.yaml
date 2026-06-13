@@ -1,0 +1,70 @@
+- hosts: localhost
+  connection: local
+  become: yes
+
+  vars:
+    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+
+  tasks:
+    - name: Install prerequisites
+      apt:
+        name:
+          - wget
+          - apt-transport-https
+          - software-properties-common
+        state: present
+        update_cache: yes
+
+    - name: Read OS release info
+      ansible.builtin.shell: |
+        . /etc/os-release
+        echo $VERSION_ID
+      register: ubuntu_version
+      changed_when: false
+
+    - name: Download Microsoft package repo .deb
+      ansible.builtin.get_url:
+        url: "https://packages.microsoft.com/config/ubuntu/{{ ubuntu_version.stdout }}/packages-microsoft-prod.deb"
+        dest: "/tmp/packages-microsoft-prod.deb"
+        mode: '0644'
+
+    - name: Install Microsoft package repo .deb
+      ansible.builtin.command: dpkg -i /tmp/packages-microsoft-prod.deb
+      args:
+
+    - name: Remove downloaded .deb
+      ansible.builtin.file:
+        path: "/tmp/packages-microsoft-prod.deb"
+        state: absent
+
+    - name: Update apt cache after adding Microsoft repo
+      apt:
+        update_cache: yes
+
+    - name: Install PowerShell
+      apt:
+        name: powershell
+        state: present
+
+    - name: Install pwsh wrapper script
+      copy:
+        dest: /usr/local/bin/pwsh
+        owner: root
+        group: root
+        mode: '0755'
+        content: |
+          #!/bin/sh
+          exec /opt/microsoft/powershell/7/pwsh -login -nologo "$@"
+
+    - name: Ensure pwsh wrapper is listed as an allowed shell
+      lineinfile:
+        path: /etc/shells
+        line: /usr/local/bin/pwsh
+        state: present
+        create: yes
+
+    - name: Change login shell of the play user to the wrapper
+      user:
+        name: "{{ user }}"
+        shell: /usr/local/bin/pwsh
+      when: user is defined and user != 'root'

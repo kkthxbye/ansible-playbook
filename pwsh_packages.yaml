@@ -1,0 +1,83 @@
+- hosts: localhost
+  connection: local
+  become: yes
+
+  vars:
+    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+    ssh_dir: "{{ home }}/.ssh"
+    repo_url: "git@github.com:kkthxbye/powershell-profile.git"
+    repo_dest: "{{ home }}/.pwsh-profile"
+    profile_source: "{{ repo_dest }}/Microsoft.PowerShell_profile.ps1"
+    profile_target: "{{ home }}/.config/powershell/Microsoft.PowerShell_profile.ps1"
+
+  tasks:
+    - name: Ensure ~/.ssh exists
+      file:
+        path: "{{ ssh_dir }}"
+        state: directory
+        mode: '0700'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Ensure known_hosts exists
+      file:
+        path: "{{ ssh_dir }}/known_hosts"
+        state: touch
+        mode: '0644'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Add GitHub host key
+      known_hosts:
+        name: "github.com"
+        key: "{{ lookup('pipe', 'ssh-keyscan github.com') }}"
+        path: "{{ ssh_dir }}/known_hosts"
+
+    - name: Ensure PowerShell config directory exists
+      file:
+        path: "{{ home }}/.config/powershell"
+        state: directory
+        mode: '0755'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Clone PowerShell profile repo
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ repo_dest }}"
+        version: master
+        accept_hostkey: yes
+        key_file: "{{ ssh_dir }}/id_ed25519"
+        update: yes
+
+    - name: Install PowerShell profile
+      copy:
+        src: "{{ profile_source }}"
+        dest: "{{ profile_target }}"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0644'
+
+    - name: Create empty secrets.ps1
+      file:
+        path: "{{ home }}/.config/powershell/secrets.ps1"
+        state: touch
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0644'
+
+    - name: Install fzf
+      package:
+        name:
+        state: present
+
+    - name: Install PSFzf PowerShell module
+      command: pwsh -Command "Install-Module -Name PSFzf -Force -Scope CurrentUser"
+      become_user: "{{ user }}"
+      become: yes
+
+    - name: Install powershell-yaml module
+      command: pwsh -Command "Install-Module -Name powershell-yaml -Force -Scope CurrentUser"
+      become_user: "{{ user }}"
+      become: yes

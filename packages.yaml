@@ -1,0 +1,13 @@
+- hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Install command-line utilities and tools
+      package:
+        name:
+          - fzf
+          - mc
+          - postgresql-client
+          - make
+        state: present

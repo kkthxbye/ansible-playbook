@@ -4,3 +4,9 @@
 - import_playbook: ssh.yaml
 - import_playbook: oh_my_posh.yaml
 - import_playbook: pwsh_profile.yaml
+- import_playbook: pwsh_packages.yaml
+- import_playbook: packages.yaml
+- import_playbook: packages/aws.yaml
+- import_playbook: packages/docker.yaml
+- import_playbook: packages/k9s.yaml
+- import_playbook: packages/minikube.yaml

@@ -2,6 +2,9 @@
   connection: local
   become: yes
 
+  vars:
+    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+
   tasks:
     - name: Install prerequisites
       apt:
@@ -42,3 +45,26 @@
       apt:
         name: powershell
         state: present
+
+    - name: Install pwsh wrapper script
+      copy:
+        dest: /usr/local/bin/pwsh
+        owner: root
+        group: root
+        mode: '0755'
+        content: |
+          #!/bin/sh
+          exec /opt/microsoft/powershell/7/pwsh -login -nologo "$@"
+
+    - name: Ensure pwsh wrapper is listed as an allowed shell
+      lineinfile:
+        path: /etc/shells
+        line: /usr/local/bin/pwsh
+        state: present
+        create: yes
+
+    - name: Change login shell of the play user to the wrapper
+      user:
+        name: "{{ user }}"
+        shell: /usr/local/bin/pwsh
+      when: user is defined and user != 'root'

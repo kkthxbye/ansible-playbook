@@ -8,8 +8,6 @@
     ssh_dir: "{{ home }}/.ssh"
     repo_url: "git@github.com:kkthxbye/powershell-profile.git"
     repo_dest: "{{ home }}/.pwsh-profile"
-    profile_source: "{{ repo_dest }}/Microsoft.PowerShell_profile.ps1"
-    profile_target: "{{ home }}/.config/powershell/Microsoft.PowerShell_profile.ps1"
 
   tasks:
     - name: Ensure ~/.ssh exists.
@@ -34,14 +32,6 @@
         key: "{{ lookup('pipe', 'ssh-keyscan github.com') }}"
         path: "{{ ssh_dir }}/known_hosts"
 
-    - name: Ensure PowerShell config directory exists.
-      file:
-        path: "{{ home }}/.config/powershell"
-        state: directory
-        mode: '0755'
-        owner: "{{ user }}"
-        group: "{{ user }}"
-
     - name: Clone PowerShell profile repo.
       git:
         repo: "{{ repo_url }}"
@@ -58,14 +48,34 @@
         msg: "{{ repo_dest }} has local modifications; skipping profile install. Commit or stash your changes, then re-run this playbook."
       when: pwsh_profile_clone is failed
 
-    - name: Install PowerShell profile.
-      copy:
-        src: "{{ profile_source }}"
-        dest: "{{ profile_target }}"
-        owner: "{{ user }}"
-        group: "{{ user }}"
-        mode: '0644'
-      when: pwsh_profile_clone is succeeded
+    - name: Check if installed PowerShell profile is a symlink.
+      stat:
+        path: "{{ home }}/.config/powershell/Microsoft.PowerShell_profile.ps1"
+      register: pwsh_profile_target
+
+    - name: Check if installed PowerShell Include directory is a symlink.
+      stat:
+        path: "{{ home }}/.config/powershell/Include"
+      register: pwsh_include_target
+
+    - name: Warn if the local PowerShell profile has unsaved edits.
+      debug:
+        msg: "{{ home }}/.config/powershell/Microsoft.PowerShell_profile.ps1 exists and isn't a symlink; it may hold local edits. Commit them into {{ repo_dest }} and re-run this playbook, or remove the file to let it be linked."
+      when: pwsh_profile_target.stat.exists and not pwsh_profile_target.stat.islnk
+
+    - name: Warn if the local PowerShell Include directory has unsaved edits.
+      debug:
+        msg: "{{ home }}/.config/powershell/Include exists and isn't a symlink; it may hold local edits. Commit them into {{ repo_dest }}/Include and re-run this playbook, or remove the directory to let it be linked."
+      when: pwsh_include_target.stat.exists and not pwsh_include_target.stat.islnk
+
+    - name: Install PowerShell profile via repo installer.
+      command: pwsh -File "{{ repo_dest }}/Install-Profile.ps1"
+      become_user: "{{ user }}"
+      become: yes
+      when:
+        - pwsh_profile_clone is succeeded
+        - not (pwsh_profile_target.stat.exists and not pwsh_profile_target.stat.islnk)
+        - not (pwsh_include_target.stat.exists and not pwsh_include_target.stat.islnk)
 
     - name: Create empty secrets.ps1.
       file:

@@ -4,8 +4,14 @@ Ansible playbooks.
 
 ## Usage
 
-```
-ansible-playbook main.yaml --tags <tag>
+```powershell
+$ ansible-playbook main.yaml --tags <tag>
 ```
 
-See `main.yaml` for the list of available tags.
+To list the available tags:
+
+```powershell
+$ Install-Module -Name powershell-yaml
+$ Import-Module powershell-yaml
+$ gc -Raw main.yaml | ConvertFrom-Yaml | % { $_.tags } | sort -Unique | Join-String -Separator ', '
+```

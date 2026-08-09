@@ -29,16 +29,25 @@
         update: yes
       become_user: "{{ user }}"
       become: yes
+      register: psqlps_clone
+      ignore_errors: yes
+
+    - name: Warn if PsqlPs repo has local modifications.
+      debug:
+        msg: "{{ repo_dest }} has local modifications; skipping build. Commit or stash your changes, then re-run this playbook."
+      when: psqlps_clone is failed
 
     - name: Install Microsoft.PowerShell.Crescendo module.
       command: pwsh -Command "Install-Module -Name Microsoft.PowerShell.Crescendo -Force -Scope CurrentUser"
       become_user: "{{ user }}"
       become: yes
+      when: psqlps_clone is succeeded
 
     - name: Install InvokeBuild module.
       command: pwsh -Command "Install-Module -Name InvokeBuild -Force -Scope CurrentUser"
       become_user: "{{ user }}"
       become: yes
+      when: psqlps_clone is succeeded
 
     - name: Build and install PsqlPs module.
       command: pwsh -Command "Invoke-Build"
@@ -46,3 +55,4 @@
         chdir: "{{ repo_dest }}"
       become_user: "{{ user }}"
       become: yes
+      when: psqlps_clone is succeeded

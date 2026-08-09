@@ -50,6 +50,13 @@
         accept_hostkey: yes
         key_file: "{{ ssh_dir }}/id_ed25519"
         update: yes
+      register: pwsh_profile_clone
+      ignore_errors: yes
+
+    - name: Warn if PowerShell profile repo has local modifications.
+      debug:
+        msg: "{{ repo_dest }} has local modifications; skipping profile install. Commit or stash your changes, then re-run this playbook."
+      when: pwsh_profile_clone is failed
 
     - name: Install PowerShell profile.
       copy:
@@ -58,6 +65,7 @@
         owner: "{{ user }}"
         group: "{{ user }}"
         mode: '0644'
+      when: pwsh_profile_clone is succeeded
 
     - name: Create empty secrets.ps1.
       file:

@@ -50,7 +50,9 @@
       changed_when: false
 
     - name: Generate GPG key.
-      command: "gpg --batch --quick-generate-key \"{{ gpg_name }} <{{ gpg_email }}>\" ed25519 sign 0"
+      command: >-
+        gpg --batch --no-tty --pinentry-mode loopback --passphrase ''
+        --quick-generate-key "{{ gpg_name }} <{{ gpg_email }}>" ed25519 sign 0
       when: gpg_existing_key.rc != 0
 
     - name: Export GPG public key.

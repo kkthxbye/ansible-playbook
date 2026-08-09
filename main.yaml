@@ -39,12 +39,10 @@
   tags: ['pyenv']
 - import_playbook: packages/rust.yaml
   tags: ['rust']
-- import_playbook: packages/pipx.yaml
-  tags: ['pipx']
+- import_playbook: packages/uv.yaml
+  tags: ['uv']
 - import_playbook: packages/gh.yaml
   tags: ['gh']
-- import_playbook: identities.yaml
-  tags: ['identities']
 - import_playbook: packages/sops.yaml
   tags: ['sops']
 - import_playbook: packages/telepresence.yaml
@@ -53,6 +51,8 @@
   tags: ['db-clients']
 - import_playbook: packages/snowflake-cli.yaml
   tags: ['snowflake-cli']
+- import_playbook: identities.yaml
+  tags: ['identities']
 - import_playbook: packages/aws-tools-powershell.yaml
   tags: ['aws-tools-powershell']
 - import_playbook: packages/mysqlps.yaml

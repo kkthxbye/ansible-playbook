@@ -113,6 +113,9 @@
     - name: Check Snowflake connectivity.
       command: "snow sql -c {{ snowflake_connection }} -q \"select 1\""
       register: snowflake_check
+      retries: 3
+      delay: 1
+      until: snowflake_check.rc == 0
       ignore_errors: yes
       changed_when: false
 

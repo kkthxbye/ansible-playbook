@@ -7,8 +7,6 @@
   tags: ['ssh']
 - import_playbook: bootstrap/oh_my_posh.yaml
   tags: ['oh-my-posh']
-- import_playbook: bootstrap/pwsh_profile.yaml
-  tags: ['pwsh-profile']
 - import_playbook: packages/cli-tools.yaml
   tags: ['cli-tools']
 
@@ -73,3 +71,6 @@
   tags: ['mysqlps']
 - import_playbook: packages/psqlps.yaml
   tags: ['psqlps']
+
+- import_playbook: bootstrap/pwsh_profile.yaml
+  tags: ['pwsh-profile']

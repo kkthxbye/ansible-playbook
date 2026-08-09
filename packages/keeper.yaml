@@ -1,0 +1,25 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+
+  tasks:
+    - name: Install Keeper Commander via uv.
+      command: "{{ home }}/.local/bin/uv tool install keepercommander"
+      become_user: "{{ user }}"
+      become: yes
+
+    - name: Verify Keeper Commander installation.
+      command: "{{ home }}/.local/bin/keeper --version"
+      register: keeper_ver
+      become_user: "{{ user }}"
+      become: yes
+      changed_when: false
+
+    - name: Display Keeper Commander version.
+      debug:
+        var: keeper_ver.stdout

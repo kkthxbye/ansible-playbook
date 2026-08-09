@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  connection: local
+  become: yes
+
+  vars:
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+
+  tasks:
+    - name: Template ~/.gitconfig.
+      copy:
+        dest: "{{ home }}/.gitconfig"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0644'
+        content: |
+          [pull]
+          	rebase = true
+          [rebase]
+          	autostash = true
+          [push]
+          	autoSetupRemote = true
+          [url "https://"]
+          	insteadOf = git://
+          [user]
+          	useConfigOnly = true

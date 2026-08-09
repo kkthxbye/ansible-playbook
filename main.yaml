@@ -5,6 +5,8 @@
   tags: ['sudo']
 - import_playbook: bootstrap/ssh.yaml
   tags: ['ssh']
+- import_playbook: bootstrap/gitconfig.yaml
+  tags: ['gitconfig']
 - import_playbook: bootstrap/oh_my_posh.yaml
   tags: ['oh-my-posh']
 - import_playbook: packages/cli-tools.yaml
@@ -38,9 +40,13 @@
   tags: ['rust']
 - import_playbook: packages/uv.yaml
   tags: ['uv']
+- import_playbook: packages/uv-tools.yaml
+  tags: ['uv-tools']
 
 - import_playbook: packages/aws.yaml
   tags: ['aws']
+- import_playbook: bootstrap/aws_config.yaml
+  tags: ['aws-config']
 - import_playbook: packages/gcloud.yaml
   tags: ['gcloud']
 - import_playbook: packages/aws-tools-powershell.yaml
@@ -50,6 +56,8 @@
   tags: ['gh']
 - import_playbook: packages/sops.yaml
   tags: ['sops']
+- import_playbook: packages/keeper.yaml
+  tags: ['keeper']
 - import_playbook: packages/telepresence.yaml
   tags: ['telepresence']
 - import_playbook: packages/db-clients.yaml

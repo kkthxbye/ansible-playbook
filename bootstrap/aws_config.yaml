@@ -1,0 +1,70 @@
+---
+- hosts: localhost
+  connection: local
+  become: yes
+
+  vars:
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+    aws_config_dir: "{{ home }}/.aws"
+    aws_sso_start_url: "CHANGE_ME"
+    aws_sso_region: "CHANGE_ME"
+    aws_default_region: "CHANGE_ME"
+
+  tasks:
+    - name: Ensure ~/.aws exists.
+      file:
+        path: "{{ aws_config_dir }}"
+        state: directory
+        mode: '0700'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Template ~/.aws/config.
+      copy:
+        dest: "{{ aws_config_dir }}/config"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0600'
+        content: |
+          [default]
+          region = {{ aws_default_region }}
+
+          [sso-session splitmetrics]
+          sso_start_url = {{ aws_sso_start_url }}
+          sso_region = {{ aws_sso_region }}
+          sso_registration_scopes = sso:account:access
+
+          [profile sm-prod]
+          sso_session = splitmetrics
+          sso_account_id = CHANGE_ME
+          sso_role_name = CHANGE_ME
+          region = {{ aws_default_region }}
+
+          [profile sm-dev]
+          sso_session = splitmetrics
+          sso_account_id = CHANGE_ME
+          sso_role_name = CHANGE_ME
+          region = {{ aws_default_region }}
+
+          [profile assume-dev-sdip]
+          role_arn = CHANGE_ME
+          source_profile = sm-dev
+          region = {{ aws_default_region }}
+
+          [profile assume-prod-sdip]
+          role_arn = CHANGE_ME
+          source_profile = sm-prod
+          region = {{ aws_default_region }}
+
+          [profile sdip-dev]
+          sso_session = splitmetrics
+          sso_account_id = CHANGE_ME
+          sso_role_name = CHANGE_ME
+          region = {{ aws_default_region }}
+
+          [profile sdip-prod]
+          sso_session = splitmetrics
+          sso_account_id = CHANGE_ME
+          sso_role_name = CHANGE_ME
+          region = {{ aws_default_region }}

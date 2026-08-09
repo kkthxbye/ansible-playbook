@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+    uv_tools:
+      - pyiceberg
+      - rust-just
+
+  tasks:
+    - name: Install uv-managed CLI tools.
+      command: "{{ home }}/.local/bin/uv tool install {{ item }}"
+      become_user: "{{ user }}"
+      become: yes
+      loop: "{{ uv_tools }}"

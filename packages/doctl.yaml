@@ -1,0 +1,33 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    doctl_version: "1.166.0"
+    doctl_archive: "doctl-{{ doctl_version }}-linux-amd64.tar.gz"
+
+  tasks:
+    - name: Download doctl archive.
+      get_url:
+        url: "https://github.com/digitalocean/doctl/releases/download/v{{ doctl_version }}/{{ doctl_archive }}"
+        dest: "/tmp/{{ doctl_archive }}"
+        mode: '0644'
+
+    - name: Extract doctl binary.
+      unarchive:
+        src: "/tmp/{{ doctl_archive }}"
+        dest: "/usr/local/bin"
+        remote_src: yes
+        creates: "/usr/local/bin/doctl"
+
+    - name: Ensure doctl is executable.
+      file:
+        path: "/usr/local/bin/doctl"
+        mode: '0755'
+        state: file
+
+    - name: Remove downloaded archive.
+      file:
+        path: "/tmp/{{ doctl_archive }}"
+        state: absent

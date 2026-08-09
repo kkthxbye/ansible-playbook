@@ -66,6 +66,8 @@
   tags: ['homebrew']
 - import_playbook: packages/auth0-cli.yaml
   tags: ['auth0-cli']
+- import_playbook: packages/doctl.yaml
+  tags: ['doctl']
 
 - import_playbook: bootstrap/identities.yaml
   tags: ['identities']

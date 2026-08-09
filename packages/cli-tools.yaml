@@ -11,4 +11,7 @@
           - postgresql-client
           - make
           - btop
+          - tmux
+          - tree
+          - ncdu
         state: present

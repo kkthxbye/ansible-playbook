@@ -13,3 +13,12 @@
       shell: "curl -sSL https://werf.io/install.sh | bash -s -- --version {{ werf_version_group }} --channel {{ werf_channel }}"
       args:
         creates: "{{ home }}/bin/trdl"
+
+    - name: Move the bash-only werf/trdl lines from ~/.profile to ~/.bashrc.
+      shell: |
+        grep -F '[[' "{{ home }}/.profile" >> "{{ home }}/.bashrc" 2>/dev/null || true
+        sed -i '/\[\[/d' "{{ home }}/.profile"
+        awk '!seen[$0]++' "{{ home }}/.bashrc" > "{{ home }}/.bashrc.tmp" && mv "{{ home }}/.bashrc.tmp" "{{ home }}/.bashrc"
+      args:
+        executable: /bin/bash
+      changed_when: false

@@ -3,7 +3,7 @@
   become: yes
 
   vars:
-    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
     pwsh_supported_ubuntu_versions:
       - "24.04"
       - "22.04"

@@ -4,11 +4,11 @@
   become: false
 
   vars:
-    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
     home: "/home/{{ user }}"
     ssh_dir: "{{ home }}/.ssh"
     public_key: "{{ ssh_dir }}/id_ed25519.pub"
-    identity_title: "{{ ansible_hostname }}-{{ user }}"
+    identity_title: "{{ ansible_facts.hostname }}-{{ user }}"
     gpg_name: "{{ user }}"
     gpg_email: "artem.klochko@splitmetrics.com"
     gpg_pubkey_path: "{{ home }}/.gnupg/{{ gpg_email }}.asc"

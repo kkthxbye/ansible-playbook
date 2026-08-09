@@ -4,7 +4,7 @@
   become: true
 
   vars:
-    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
     keyring_path: "/usr/share/keyrings/docker-archive-keyring.gpg"
 
   tasks:
@@ -36,7 +36,7 @@
 
     - name: Add Docker apt repository.
       apt_repository:
-        repo: "deb [arch=amd64 signed-by={{ keyring_path }}] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        repo: "deb [arch=amd64 signed-by={{ keyring_path }}] https://download.docker.com/linux/ubuntu {{ ansible_facts.distribution_release }} stable"
         state: present
         filename: docker
 

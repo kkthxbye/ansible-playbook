@@ -4,7 +4,7 @@
   become: false
 
   vars:
-    home: "{{ ansible_env.HOME }}"
+    home: "{{ ansible_facts.env.HOME }}"
     werf_version_group: "1.2"
     werf_channel: "stable"
 

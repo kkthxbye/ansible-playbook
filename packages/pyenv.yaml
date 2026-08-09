@@ -1,0 +1,33 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+
+  tasks:
+    - name: Ensure pyenv build dependencies are installed.
+      package:
+        name:
+          - build-essential
+          - libssl-dev
+          - zlib1g-dev
+          - libbz2-dev
+          - libreadline-dev
+          - libsqlite3-dev
+          - libncursesw5-dev
+          - xz-utils
+          - tk-dev
+          - libxml2-dev
+          - libxmlsec1-dev
+          - libffi-dev
+          - liblzma-dev
+        state: present
+
+    - name: Install pyenv.
+      become: false
+      shell: "curl https://pyenv.run | bash"
+      args:
+        creates: "{{ home }}/.pyenv/bin/pyenv"

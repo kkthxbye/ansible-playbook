@@ -1,0 +1,43 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    keyring_path: "/usr/share/keyrings/hashicorp-archive-keyring.gpg"
+
+  tasks:
+    - name: Ensure prerequisites are installed.
+      package:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+
+    - name: Download HashiCorp apt signing key.
+      get_url:
+        url: "https://apt.releases.hashicorp.com/gpg"
+        dest: "/tmp/hashicorp.key"
+        mode: '0644'
+
+    - name: Dearmor HashiCorp apt signing key.
+      shell: "gpg --dearmor -o {{ keyring_path }} /tmp/hashicorp.key"
+      args:
+        creates: "{{ keyring_path }}"
+
+    - name: Add HashiCorp apt repository.
+      apt_repository:
+        repo: "deb [signed-by={{ keyring_path }}] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
+        filename: hashicorp
+
+    - name: Update apt package index.
+      apt:
+        update_cache: yes
+
+    - name: Install Terraform.
+      package:
+        name: terraform
+        state: present

@@ -1,0 +1,36 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    keyring_path: "/usr/share/keyrings/githubcli-archive-keyring.gpg"
+
+  tasks:
+    - name: Ensure prerequisites are installed.
+      package:
+        name:
+          - curl
+          - gnupg
+        state: present
+
+    - name: Download GitHub CLI apt signing key.
+      get_url:
+        url: "https://cli.github.com/packages/githubcli-archive-keyring.gpg"
+        dest: "{{ keyring_path }}"
+        mode: '0644'
+
+    - name: Add GitHub CLI apt repository.
+      apt_repository:
+        repo: "deb [arch=amd64 signed-by={{ keyring_path }}] https://cli.github.com/packages stable main"
+        state: present
+        filename: github-cli
+
+    - name: Update apt package index.
+      apt:
+        update_cache: yes
+
+    - name: Install GitHub CLI.
+      package:
+        name: gh
+        state: present

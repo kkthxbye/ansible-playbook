@@ -36,10 +36,10 @@
         owner: "{{ user }}"
         group: "{{ user }}"
 
-    - name: Install oh-my-posh only if missing
+    - name: Install oh-my-posh only if missing.
       become: false
       shell: |
-        curl -s https://ohmyposh.dev/install.sh | bash -s
+        curl -s https://ohmyposh.dev/install.sh | bash -s -- -d {{ posh_bin_dir }}
       args:
         executable: /bin/bash
       when: not posh_bin is exists

@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Download telepresence binary.
+      get_url:
+        url: "https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence"
+        dest: "/usr/local/bin/telepresence"
+        mode: '0755'
+        force: yes
+
+    - name: Ensure telepresence is executable.
+      file:
+        path: "/usr/local/bin/telepresence"
+        mode: '0755'
+        state: file

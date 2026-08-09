@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+    terragrunt_version: "latest"
+
+  tasks:
+    - name: Ensure ~/.terragrunt/bin exists.
+      file:
+        path: "{{ home }}/.terragrunt/bin"
+        state: directory
+        mode: '0755'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Download terragrunt binary.
+      get_url:
+        url: "https://github.com/gruntwork-io/terragrunt/releases/{{ terragrunt_version }}/download/terragrunt_linux_amd64"
+        dest: "{{ home }}/.terragrunt/bin/terragrunt"
+        mode: '0755'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        force: yes

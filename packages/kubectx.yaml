@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Install kubectx and kubens.
+      package:
+        name: kubectx
+        state: present

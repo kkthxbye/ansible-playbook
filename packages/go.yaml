@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+
+  tasks:
+    - name: Install Go.
+      package:
+        name: golang-go
+        state: present
+
+    - name: Ensure ~/go/bin exists.
+      file:
+        path: "{{ home }}/go/bin"
+        state: directory
+        mode: '0755'
+        owner: "{{ user }}"
+        group: "{{ user }}"

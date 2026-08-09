@@ -1,0 +1,37 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Download Helm install script.
+      get_url:
+        url: "https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+        dest: "/tmp/get-helm-3"
+        mode: '0755'
+
+    - name: Install Helm.
+      command: "/tmp/get-helm-3"
+      args:
+        creates: "/usr/local/bin/helm"
+
+    - name: Remove downloaded install script.
+      file:
+        path: "/tmp/get-helm-3"
+        state: absent
+
+    - name: Ensure zsh vendor-completions directory exists.
+      file:
+        path: "/usr/share/zsh/vendor-completions"
+        state: directory
+        mode: '0755'
+
+    - name: Install Helm zsh completion.
+      shell: "helm completion zsh > /usr/share/zsh/vendor-completions/_helm"
+      args:
+        creates: "/usr/share/zsh/vendor-completions/_helm"
+
+    - name: Install Helm bash completion.
+      shell: "helm completion bash > /etc/bash_completion.d/helm"
+      args:
+        creates: "/etc/bash_completion.d/helm"

@@ -1,0 +1,78 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    postgresql_client_versions:
+      - 11
+      - 12
+      - 14
+    postgresql_keyring_path: "/usr/share/keyrings/postgresql-keyring.gpg"
+    clickhouse_keyring_path: "/usr/share/keyrings/clickhouse-keyring.gpg"
+
+  tasks:
+    - name: Install mysql-client and redis-tools.
+      package:
+        name:
+          - mysql-client
+          - redis-tools
+        state: present
+
+    - name: Ensure prerequisites are installed.
+      package:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+
+    - name: Download PostgreSQL apt signing key.
+      get_url:
+        url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+        dest: "/tmp/postgresql.asc"
+        mode: '0644'
+
+    - name: Dearmor PostgreSQL apt signing key.
+      shell: "gpg --dearmor -o {{ postgresql_keyring_path }} /tmp/postgresql.asc"
+      args:
+        creates: "{{ postgresql_keyring_path }}"
+
+    - name: Add PostgreSQL apt repository.
+      apt_repository:
+        repo: "deb [signed-by={{ postgresql_keyring_path }}] https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+        state: present
+        filename: pgdg
+
+    - name: Download ClickHouse apt signing key.
+      get_url:
+        url: "https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key"
+        dest: "/tmp/clickhouse.key"
+        mode: '0644'
+
+    - name: Dearmor ClickHouse apt signing key.
+      shell: "gpg --dearmor -o {{ clickhouse_keyring_path }} /tmp/clickhouse.key"
+      args:
+        creates: "{{ clickhouse_keyring_path }}"
+
+    - name: Add ClickHouse apt repository.
+      apt_repository:
+        repo: "deb [signed-by={{ clickhouse_keyring_path }}] https://packages.clickhouse.com/deb stable main"
+        state: present
+        filename: clickhouse
+
+    - name: Update apt package index.
+      apt:
+        update_cache: yes
+
+    - name: Install pinned PostgreSQL client versions.
+      package:
+        name: "postgresql-client-{{ item }}"
+        state: present
+      loop: "{{ postgresql_client_versions }}"
+
+    - name: Install clickhouse-client.
+      package:
+        name: clickhouse-client
+        state: present

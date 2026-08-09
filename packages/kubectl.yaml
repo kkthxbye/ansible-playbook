@@ -1,0 +1,70 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+    kubectl_minor_version: "1.31"
+    keyring_path: "/usr/share/keyrings/kubernetes-apt-keyring.gpg"
+
+  tasks:
+    - name: Ensure prerequisites are installed.
+      package:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+
+    - name: Download Kubernetes apt signing key.
+      get_url:
+        url: "https://pkgs.k8s.io/core:/stable:/v{{ kubectl_minor_version }}/deb/Release.key"
+        dest: "/tmp/kubernetes-release.key"
+        mode: '0644'
+
+    - name: Dearmor Kubernetes apt signing key.
+      shell: "gpg --dearmor -o {{ keyring_path }} /tmp/kubernetes-release.key"
+      args:
+        creates: "{{ keyring_path }}"
+
+    - name: Add Kubernetes apt repository.
+      apt_repository:
+        repo: "deb [signed-by={{ keyring_path }}] https://pkgs.k8s.io/core:/stable:/v{{ kubectl_minor_version }}/deb/ /"
+        state: present
+        filename: kubernetes
+
+    - name: Update apt package index.
+      apt:
+        update_cache: yes
+
+    - name: Install kubectl.
+      package:
+        name: kubectl
+        state: present
+
+    - name: Ensure ~/.kube exists.
+      file:
+        path: "{{ home }}/.kube"
+        state: directory
+        mode: '0700'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Install kubectl bash completion.
+      shell: "kubectl completion bash > /etc/bash_completion.d/kubectl"
+      args:
+        creates: "/etc/bash_completion.d/kubectl"
+
+    - name: Ensure zsh vendor-completions directory exists.
+      file:
+        path: "/usr/share/zsh/vendor-completions"
+        state: directory
+        mode: '0755'
+
+    - name: Install kubectl zsh completion.
+      shell: "kubectl completion zsh > /usr/share/zsh/vendor-completions/_kubectl"
+      args:
+        creates: "/usr/share/zsh/vendor-completions/_kubectl"

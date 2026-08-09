@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+
+  tasks:
+    - name: Install Homebrew.
+      shell: 'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+      args:
+        creates: "/home/linuxbrew/.linuxbrew/bin/brew"

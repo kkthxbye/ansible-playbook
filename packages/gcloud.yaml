@@ -1,0 +1,43 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    keyring_path: "/usr/share/keyrings/cloud.google.gpg"
+
+  tasks:
+    - name: Ensure prerequisites are installed.
+      package:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+
+    - name: Download Google Cloud apt signing key.
+      get_url:
+        url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+        dest: "/tmp/google-cloud.key"
+        mode: '0644'
+
+    - name: Dearmor Google Cloud apt signing key.
+      shell: "gpg --dearmor -o {{ keyring_path }} /tmp/google-cloud.key"
+      args:
+        creates: "{{ keyring_path }}"
+
+    - name: Add Google Cloud SDK apt repository.
+      apt_repository:
+        repo: "deb [signed-by={{ keyring_path }}] https://packages.cloud.google.com/apt cloud-sdk main"
+        state: present
+        filename: google-cloud-sdk
+
+    - name: Update apt package index.
+      apt:
+        update_cache: yes
+
+    - name: Install Google Cloud CLI.
+      package:
+        name: google-cloud-cli
+        state: present

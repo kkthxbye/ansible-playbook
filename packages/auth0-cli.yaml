@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+
+  tasks:
+    - name: Install Auth0 CLI via Homebrew.
+      command: "/home/linuxbrew/.linuxbrew/bin/brew install auth0"
+      register: auth0_brew
+      changed_when: "'already installed' not in auth0_brew.stdout"

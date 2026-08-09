@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+
+  tasks:
+    - name: Install rustup and the stable Rust toolchain.
+      become: false
+      shell: "curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path"
+      args:
+        creates: "{{ home }}/.cargo/bin/rustc"

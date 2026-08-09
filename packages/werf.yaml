@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+
+  vars:
+    home: "{{ ansible_env.HOME }}"
+    werf_version_group: "1.2"
+    werf_channel: "stable"
+
+  tasks:
+    - name: Install trdl and register the werf release channel.
+      shell: "curl -sSL https://werf.io/install.sh | bash -s -- --version {{ werf_version_group }} --channel {{ werf_channel }}"
+      args:
+        creates: "{{ home }}/bin/trdl"

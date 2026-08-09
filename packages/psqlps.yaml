@@ -1,0 +1,48 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+    ssh_dir: "{{ home }}/.ssh"
+    repo_url: "git@github.com:kkthxbye/psqlps.git"
+    repo_dest: "{{ home }}/code/PsqlPs"
+
+  tasks:
+    - name: Ensure ~/.ssh exists.
+      file:
+        path: "{{ ssh_dir }}"
+        state: directory
+        mode: '0700'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Clone PsqlPs repo.
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ repo_dest }}"
+        version: master
+        accept_hostkey: yes
+        key_file: "{{ ssh_dir }}/id_ed25519"
+        update: yes
+      become_user: "{{ user }}"
+      become: yes
+
+    - name: Install Microsoft.PowerShell.Crescendo module.
+      command: pwsh -Command "Install-Module -Name Microsoft.PowerShell.Crescendo -Force -Scope CurrentUser"
+      become_user: "{{ user }}"
+      become: yes
+
+    - name: Install InvokeBuild module.
+      command: pwsh -Command "Install-Module -Name InvokeBuild -Force -Scope CurrentUser"
+      become_user: "{{ user }}"
+      become: yes
+
+    - name: Build and install PsqlPs module.
+      command: pwsh -Command "Invoke-Build"
+      args:
+        chdir: "{{ repo_dest }}"
+      become_user: "{{ user }}"
+      become: yes

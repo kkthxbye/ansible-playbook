@@ -40,6 +40,8 @@
         accept_hostkey: yes
         key_file: "{{ ssh_dir }}/id_ed25519"
         update: yes
+      become_user: "{{ user }}"
+      become: yes
       register: pwsh_profile_clone
       ignore_errors: yes
 

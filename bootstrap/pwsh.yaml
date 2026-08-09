@@ -4,12 +4,17 @@
 
   vars:
     user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    pwsh_supported_ubuntu_versions:
+      - "24.04"
+      - "22.04"
+      - "20.04"
 
   tasks:
     - name: Install prerequisites
       apt:
         name:
           - wget
+          - gnupg
           - apt-transport-https
           - software-properties-common
         state: present
@@ -22,19 +27,40 @@
       register: ubuntu_version
       changed_when: false
 
+    - name: Fall back to the newest Ubuntu release Microsoft has published the powershell package for.
+      set_fact:
+        pwsh_ms_repo_version: >-
+          {{ ubuntu_version.stdout if ubuntu_version.stdout in pwsh_supported_ubuntu_versions
+          else pwsh_supported_ubuntu_versions[0] }}
+
     - name: Download Microsoft package repo .deb
       ansible.builtin.get_url:
-        url: "https://packages.microsoft.com/config/ubuntu/{{ ubuntu_version.stdout }}/packages-microsoft-prod.deb"
+        url: "https://packages.microsoft.com/config/ubuntu/{{ pwsh_ms_repo_version }}/packages-microsoft-prod.deb"
         dest: "/tmp/packages-microsoft-prod.deb"
         mode: '0644'
 
     - name: Install Microsoft package repo .deb
-      ansible.builtin.command: dpkg -i /tmp/packages-microsoft-prod.deb
-      args:
+      ansible.builtin.command: dpkg --force-confnew -i /tmp/packages-microsoft-prod.deb
+
+    - name: Download Microsoft's current signing key.
+      ansible.builtin.get_url:
+        url: "https://packages.microsoft.com/keys/microsoft.asc"
+        dest: "/tmp/microsoft.asc"
+        mode: '0644'
+
+    - name: Import Microsoft's current signing key into the repo keyring.
+      ansible.builtin.shell: >-
+        gpg --no-default-keyring --keyring /usr/share/keyrings/microsoft-prod.gpg
+        --import /tmp/microsoft.asc
 
     - name: Remove downloaded .deb
       ansible.builtin.file:
         path: "/tmp/packages-microsoft-prod.deb"
+        state: absent
+
+    - name: Remove downloaded signing key.
+      ansible.builtin.file:
+        path: "/tmp/microsoft.asc"
         state: absent
 
     - name: Update apt cache after adding Microsoft repo

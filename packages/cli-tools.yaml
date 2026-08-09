@@ -10,4 +10,5 @@
           - mc
           - postgresql-client
           - make
+          - btop
         state: present

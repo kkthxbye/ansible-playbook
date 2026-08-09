@@ -62,8 +62,6 @@
   tags: ['werf']
 - import_playbook: packages/duckdb.yaml
   tags: ['duckdb']
-- import_playbook: packages/homebrew.yaml
-  tags: ['homebrew']
 - import_playbook: packages/auth0-cli.yaml
   tags: ['auth0-cli']
 - import_playbook: packages/doctl.yaml

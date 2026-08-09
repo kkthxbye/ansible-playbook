@@ -1,10 +1,33 @@
 ---
 - hosts: localhost
   connection: local
-  become: false
+  become: true
+
+  vars:
+    auth0_cli_version: "1.32.0"
+    auth0_cli_archive: "auth0-cli_{{ auth0_cli_version }}_Linux_x86_64.tar.gz"
 
   tasks:
-    - name: Install Auth0 CLI via Homebrew.
-      command: "/home/linuxbrew/.linuxbrew/bin/brew install auth0"
-      register: auth0_brew
-      changed_when: "'already installed' not in auth0_brew.stdout"
+    - name: Download Auth0 CLI archive.
+      get_url:
+        url: "https://github.com/auth0/auth0-cli/releases/download/v{{ auth0_cli_version }}/{{ auth0_cli_archive }}"
+        dest: "/tmp/{{ auth0_cli_archive }}"
+        mode: '0644'
+
+    - name: Extract Auth0 CLI binary.
+      unarchive:
+        src: "/tmp/{{ auth0_cli_archive }}"
+        dest: "/usr/local/bin"
+        remote_src: yes
+        creates: "/usr/local/bin/auth0"
+
+    - name: Ensure Auth0 CLI is executable.
+      file:
+        path: "/usr/local/bin/auth0"
+        mode: '0755'
+        state: file
+
+    - name: Remove downloaded archive.
+      file:
+        path: "/tmp/{{ auth0_cli_archive }}"
+        state: absent

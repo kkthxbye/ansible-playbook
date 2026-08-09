@@ -77,14 +77,6 @@
         - not (pwsh_profile_target.stat.exists and not pwsh_profile_target.stat.islnk)
         - not (pwsh_include_target.stat.exists and not pwsh_include_target.stat.islnk)
 
-    - name: Create empty secrets.ps1.
-      file:
-        path: "{{ home }}/.config/powershell/secrets.ps1"
-        state: touch
-        owner: "{{ user }}"
-        group: "{{ user }}"
-        mode: '0644'
-
     - name: Install fzf.
       package:
         name: fzf

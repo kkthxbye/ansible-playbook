@@ -53,7 +53,7 @@
         group: root
         mode: '0755'
         content: |
-          #!/bin/sh
+          #!/bin/bash
           exec /opt/microsoft/powershell/7/pwsh -login -nologo "$@"
 
     - name: Ensure pwsh wrapper is listed as an allowed shell

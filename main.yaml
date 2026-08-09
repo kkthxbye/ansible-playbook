@@ -43,6 +43,8 @@
   tags: ['pipx']
 - import_playbook: packages/gh.yaml
   tags: ['gh']
+- import_playbook: identities.yaml
+  tags: ['identities']
 - import_playbook: packages/sops.yaml
   tags: ['sops']
 - import_playbook: packages/telepresence.yaml

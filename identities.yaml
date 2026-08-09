@@ -1,0 +1,126 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+
+  vars:
+    user: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+    ssh_dir: "{{ home }}/.ssh"
+    public_key: "{{ ssh_dir }}/id_ed25519.pub"
+    identity_title: "{{ ansible_hostname }}-{{ user }}"
+    gpg_name: "{{ user }}"
+    gpg_email: "artem.klochko@splitmetrics.com"
+    gpg_pubkey_path: "{{ home }}/.gnupg/{{ gpg_email }}.asc"
+    snowflake_username: "CHANGE_ME"
+    snowflake_connection: "default"
+    snowflake_keys_dir: "{{ home }}/snowflake_keys"
+    snowflake_private_key: "{{ snowflake_keys_dir }}/rsa_key.p8"
+    snowflake_public_key: "{{ snowflake_keys_dir }}/rsa_key.pub"
+
+  tasks:
+    - name: Check gh authentication status.
+      command: gh auth status
+      register: gh_auth_status
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Warn if gh is not authenticated.
+      debug:
+        msg: "gh is not authenticated. Run 'gh auth login' manually, then re-run this playbook to register keys with GitHub."
+      when: gh_auth_status.rc != 0
+
+    - name: List SSH key titles already registered on GitHub.
+      shell: "gh ssh-key list 2>/dev/null | cut -f1"
+      register: gh_ssh_keys
+      when: gh_auth_status.rc == 0
+      changed_when: false
+      failed_when: false
+
+    - name: Register SSH public key with GitHub via gh.
+      command: gh ssh-key add "{{ public_key }}" --title "{{ identity_title }}"
+      when:
+        - gh_auth_status.rc == 0
+        - identity_title not in (gh_ssh_keys.stdout_lines | default([]))
+
+    - name: Check for an existing GPG key.
+      command: "gpg --list-secret-keys --with-colons {{ gpg_email }}"
+      register: gpg_existing_key
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Generate GPG key.
+      command: "gpg --batch --quick-generate-key \"{{ gpg_name }} <{{ gpg_email }}>\" ed25519 sign 0"
+      when: gpg_existing_key.rc != 0
+
+    - name: Export GPG public key.
+      shell: "gpg --armor --export {{ gpg_email }} > {{ gpg_pubkey_path }}"
+      args:
+        creates: "{{ gpg_pubkey_path }}"
+
+    - name: Get local GPG key ID.
+      shell: "gpg --list-secret-keys --with-colons {{ gpg_email }} | awk -F: '/^fpr:/ {print substr($10, length($10)-15); exit}'"
+      register: local_gpg_keyid
+      changed_when: false
+      failed_when: false
+
+    - name: List GPG key IDs already registered on GitHub.
+      shell: "gh gpg-key list 2>/dev/null | cut -f2"
+      register: gh_gpg_keys
+      when: gh_auth_status.rc == 0
+      changed_when: false
+      failed_when: false
+
+    - name: Register GPG public key with GitHub via gh.
+      command: gh gpg-key add "{{ gpg_pubkey_path }}" --title "{{ identity_title }}"
+      when:
+        - gh_auth_status.rc == 0
+        - local_gpg_keyid.stdout | default('') | length > 0
+        - local_gpg_keyid.stdout not in (gh_gpg_keys.stdout_lines | default([]))
+
+    - name: Ensure snowflake_keys directory exists.
+      file:
+        path: "{{ snowflake_keys_dir }}"
+        state: directory
+        mode: '0700'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Generate Snowflake RSA private key.
+      shell: "openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out {{ snowflake_private_key }} -nocrypt"
+      args:
+        creates: "{{ snowflake_private_key }}"
+
+    - name: Restrict Snowflake private key permissions.
+      file:
+        path: "{{ snowflake_private_key }}"
+        mode: '0600'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Generate Snowflake RSA public key.
+      command: "openssl rsa -in {{ snowflake_private_key }} -pubout -out {{ snowflake_public_key }}"
+      args:
+        creates: "{{ snowflake_public_key }}"
+
+    - name: Extract Snowflake public key body.
+      shell: "grep -v -- '-----' {{ snowflake_public_key }} | tr -d '\\n'"
+      register: snowflake_pubkey_body
+      changed_when: false
+
+    - name: Check Snowflake connectivity.
+      command: "snow sql -c {{ snowflake_connection }} -q \"select 1\""
+      register: snowflake_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Warn if Snowflake is not reachable.
+      debug:
+        msg: "Could not reach Snowflake with connection '{{ snowflake_connection }}'. Run 'snow connection add' to configure one, then re-run this playbook to register the key-pair."
+      when: snowflake_check.rc != 0
+
+    - name: Register RSA public key with Snowflake user.
+      command: >-
+        snow sql -c {{ snowflake_connection }} -q
+        "ALTER USER {{ snowflake_username }} SET RSA_PUBLIC_KEY='{{ snowflake_pubkey_body.stdout }}'"
+      when: snowflake_check.rc == 0

@@ -1,40 +1,50 @@
+---
 - hosts: localhost
   connection: local
   become: true
 
   vars:
-    # set to a specific version (e.g. "2.14.0") or "latest" for the newest bundle
     aws_cli_version: "latest"
 
   tasks:
-    - name: Ensure unzip is installed
+    - name: Ensure unzip is installed.
       package:
         name: unzip
         state: present
 
-    - name: Download AWS CLI v2 bundle
+    - name: Check if AWS CLI is already installed.
+      stat:
+        path: /usr/local/bin/aws
+      register: aws_cli_bin
+
+    - name: Download AWS CLI v2 bundle.
       get_url:
         url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
         dest: "/tmp/awscliv2.zip"
         mode: '0644'
+      when: not aws_cli_bin.stat.exists
 
-    - name: Unpack AWS CLI archive
+    - name: Unpack AWS CLI archive.
       unarchive:
         src: "/tmp/awscliv2.zip"
         dest: "/tmp"
         remote_src: yes
+      when: not aws_cli_bin.stat.exists
 
-    - name: Run AWS CLI installer
+    - name: Run AWS CLI installer.
       command: "/tmp/aws/install -i /usr/local/aws-cli -b /usr/local/bin"
       args:
         creates: "/usr/local/bin/aws"
+      when: not aws_cli_bin.stat.exists
 
-    - name: Remove downloaded bundle
+    - name: Remove downloaded bundle.
       file:
         path: "/tmp/awscliv2.zip"
         state: absent
+      when: not aws_cli_bin.stat.exists
 
-    - name: Clean up extracted directory
+    - name: Clean up extracted directory.
       file:
         path: "/tmp/aws"
         state: absent
+      when: not aws_cli_bin.stat.exists

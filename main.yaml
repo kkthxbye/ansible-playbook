@@ -1,20 +1,17 @@
 ---
-- import_playbook: pwsh.yaml
+- import_playbook: bootstrap/pwsh.yaml
   tags: ['pwsh']
-- import_playbook: sudo.yaml
+- import_playbook: bootstrap/sudo.yaml
   tags: ['sudo']
-- import_playbook: ssh.yaml
+- import_playbook: bootstrap/ssh.yaml
   tags: ['ssh']
-- import_playbook: oh_my_posh.yaml
+- import_playbook: bootstrap/oh_my_posh.yaml
   tags: ['oh-my-posh']
-- import_playbook: pwsh_profile.yaml
+- import_playbook: bootstrap/pwsh_profile.yaml
   tags: ['pwsh-profile']
-- import_playbook: packages.yaml
-  tags: ['packages']
-- import_playbook: packages/aws.yaml
-  tags: ['aws']
-- import_playbook: packages/gcloud.yaml
-  tags: ['gcloud']
+- import_playbook: packages/cli-tools.yaml
+  tags: ['cli-tools']
+
 - import_playbook: packages/docker.yaml
   tags: ['docker']
 - import_playbook: packages/k9s.yaml
@@ -27,10 +24,12 @@
   tags: ['helm']
 - import_playbook: packages/kubectx.yaml
   tags: ['kubectx']
+
 - import_playbook: packages/terraform.yaml
   tags: ['terraform']
 - import_playbook: packages/terragrunt.yaml
   tags: ['terragrunt']
+
 - import_playbook: packages/go.yaml
   tags: ['go']
 - import_playbook: packages/nvm.yaml
@@ -41,6 +40,14 @@
   tags: ['rust']
 - import_playbook: packages/uv.yaml
   tags: ['uv']
+
+- import_playbook: packages/aws.yaml
+  tags: ['aws']
+- import_playbook: packages/gcloud.yaml
+  tags: ['gcloud']
+- import_playbook: packages/aws-tools-powershell.yaml
+  tags: ['aws-tools-powershell']
+
 - import_playbook: packages/gh.yaml
   tags: ['gh']
 - import_playbook: packages/sops.yaml
@@ -51,14 +58,6 @@
   tags: ['db-clients']
 - import_playbook: packages/snowflake-cli.yaml
   tags: ['snowflake-cli']
-- import_playbook: identities.yaml
-  tags: ['identities']
-- import_playbook: packages/aws-tools-powershell.yaml
-  tags: ['aws-tools-powershell']
-- import_playbook: packages/mysqlps.yaml
-  tags: ['mysqlps']
-- import_playbook: packages/psqlps.yaml
-  tags: ['psqlps']
 - import_playbook: packages/werf.yaml
   tags: ['werf']
 - import_playbook: packages/duckdb.yaml
@@ -67,3 +66,10 @@
   tags: ['homebrew']
 - import_playbook: packages/auth0-cli.yaml
   tags: ['auth0-cli']
+
+- import_playbook: bootstrap/identities.yaml
+  tags: ['identities']
+- import_playbook: packages/mysqlps.yaml
+  tags: ['mysqlps']
+- import_playbook: packages/psqlps.yaml
+  tags: ['psqlps']

@@ -1,24 +1,30 @@
+---
 - hosts: localhost
   connection: local
   become: true
 
   vars:
-    # specify a release or use "latest" for the most recent build
     k9s_version: "latest"
+    k9s_download_url: >-
+      {{
+        'https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb'
+        if k9s_version == 'latest'
+        else 'https://github.com/derailed/k9s/releases/download/' + k9s_version + '/k9s_linux_amd64.deb'
+      }}
 
   tasks:
-    - name: Download k9s .deb package
+    - name: Download k9s .deb package.
       get_url:
-        url: "https://github.com/derailed/k9s/releases/{{ k9s_version }}/download/k9s_linux_amd64.deb"
+        url: "{{ k9s_download_url }}"
         dest: "/tmp/k9s_linux_amd64.deb"
         mode: '0644'
 
-    - name: Install k9s package
+    - name: Install k9s package.
       apt:
         deb: "/tmp/k9s_linux_amd64.deb"
         state: present
 
-    - name: Remove downloaded deb file
+    - name: Remove downloaded deb file.
       file:
         path: "/tmp/k9s_linux_amd64.deb"
         state: absent

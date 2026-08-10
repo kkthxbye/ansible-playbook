@@ -9,6 +9,8 @@
   tags: ['gitconfig']
 - import_playbook: bootstrap/oh_my_posh.yaml
   tags: ['oh-my-posh']
+- import_playbook: bootstrap/atuin.yaml
+  tags: ['atuin']
 - import_playbook: packages/cli-tools.yaml
   tags: ['cli-tools']
 

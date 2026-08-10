@@ -1,0 +1,54 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+
+  vars:
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+    atuin_bin: "{{ home }}/.atuin/bin/atuin"
+    atuin_snippet_path: "{{ home }}/.atuin/powershell-profile-snippet.ps1"
+
+  tasks:
+    - name: Install atuin only if missing.
+      shell: |
+        curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh | bash -s -- --non-interactive
+      args:
+        executable: /bin/bash
+      when: not atuin_bin is exists
+
+    - name: Check atuin sync login status.
+      command: "{{ atuin_bin }} status"
+      register: atuin_status
+      changed_when: false
+      failed_when: false
+
+    - name: Warn if atuin is not logged in to a sync server.
+      debug:
+        msg: >-
+          atuin is installed but not logged in. Run '{{ atuin_bin }} login -u <username>'
+          manually (you'll be prompted for your password and encryption key interactively —
+          never pass them as command-line arguments), then re-run this playbook
+          (--tags atuin) to sync your history down from the remote server.
+      when: atuin_status.rc != 0
+
+    - name: Sync shell history from the remote atuin server.
+      command: "{{ atuin_bin }} sync"
+      when: atuin_status.rc == 0
+      changed_when: false
+
+    - name: Write the PowerShell profile snippet for atuin init + Ctrl+T keybinding.
+      copy:
+        dest: "{{ atuin_snippet_path }}"
+        mode: '0644'
+        content: |
+          # Add to your PowerShell profile (kkthxbye/powershell-profile) to enable atuin
+          # history search, bound to Ctrl+T instead of atuin's default Ctrl+R.
+          (atuin init powershell | Out-String) -replace '"Ctrl\+r"', '"Ctrl+t"' | Invoke-Expression
+
+    - name: Point to the generated profile snippet.
+      debug:
+        msg: >-
+          Wrote the atuin PowerShell snippet to {{ atuin_snippet_path }}. Paste its
+          contents into your powershell-profile repo, commit, and re-run the
+          pwsh-profile install so Ctrl+T opens atuin search instead of Ctrl+R.

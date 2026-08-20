@@ -29,7 +29,7 @@
     - name: Add GitHub host key.
       known_hosts:
         name: "github.com"
-        key: "{{ lookup('pipe', 'ssh-keyscan github.com') }}"
+        key: "{{ lookup('pipe', 'ssh-keyscan -T 5 github.com') }}"
         path: "{{ ssh_dir }}/known_hosts"
 
     - name: Clone PowerShell profile repo.

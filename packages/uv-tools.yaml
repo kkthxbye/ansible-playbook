@@ -11,6 +11,14 @@
       - rust-just
 
   tasks:
+    - name: Install build prerequisites.
+      apt:
+        name:
+          - python3-dev
+          - build-essential
+        state: present
+        update_cache: yes
+
     - name: Install uv-managed CLI tools.
       command: "{{ home }}/.local/bin/uv tool install {{ item }}"
       become_user: "{{ user }}"

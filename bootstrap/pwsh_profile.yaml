@@ -5,40 +5,15 @@
   vars:
     user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
     home: "/home/{{ user }}"
-    ssh_dir: "{{ home }}/.ssh"
-    repo_url: "git@github.com:kkthxbye/powershell-profile.git"
+    repo_url: "https://github.com/kkthxbye/powershell-profile.git"
     repo_dest: "{{ home }}/.pwsh-profile"
 
   tasks:
-    - name: Ensure ~/.ssh exists.
-      file:
-        path: "{{ ssh_dir }}"
-        state: directory
-        mode: '0700'
-        owner: "{{ user }}"
-        group: "{{ user }}"
-
-    - name: Ensure known_hosts exists.
-      file:
-        path: "{{ ssh_dir }}/known_hosts"
-        state: touch
-        mode: '0644'
-        owner: "{{ user }}"
-        group: "{{ user }}"
-
-    - name: Add GitHub host key.
-      known_hosts:
-        name: "github.com"
-        key: "{{ lookup('pipe', 'ssh-keyscan -T 5 github.com') }}"
-        path: "{{ ssh_dir }}/known_hosts"
-
     - name: Clone PowerShell profile repo.
       git:
         repo: "{{ repo_url }}"
         dest: "{{ repo_dest }}"
         version: master
-        accept_hostkey: yes
-        key_file: "{{ ssh_dir }}/id_ed25519"
         update: yes
       become_user: "{{ user }}"
       become: yes

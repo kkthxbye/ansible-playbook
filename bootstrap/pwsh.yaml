@@ -80,7 +80,7 @@
         mode: '0755'
         content: |
           #!/bin/bash
-          exec /opt/microsoft/powershell/7/pwsh -login -nologo "$@"
+          exec /opt/microsoft/powershell/7/pwsh -login -nologo -noprofileloadtime "$@"
 
     - name: Ensure pwsh wrapper is listed as an allowed shell
       lineinfile:

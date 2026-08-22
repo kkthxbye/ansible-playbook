@@ -6,26 +6,15 @@
   vars:
     user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
     home: "/home/{{ user }}"
-    ssh_dir: "{{ home }}/.ssh"
-    repo_url: "git@github.com:kkthxbye/psqlps.git"
+    repo_url: "https://github.com/kkthxbye/psqlps.git"
     repo_dest: "{{ home }}/code/PsqlPs"
 
   tasks:
-    - name: Ensure ~/.ssh exists.
-      file:
-        path: "{{ ssh_dir }}"
-        state: directory
-        mode: '0700'
-        owner: "{{ user }}"
-        group: "{{ user }}"
-
     - name: Clone PsqlPs repo.
       git:
         repo: "{{ repo_url }}"
         dest: "{{ repo_dest }}"
         version: master
-        accept_hostkey: yes
-        key_file: "{{ ssh_dir }}/id_ed25519"
         update: yes
       become_user: "{{ user }}"
       become: yes

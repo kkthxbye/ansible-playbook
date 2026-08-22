@@ -4,10 +4,6 @@
   become: true
 
   vars:
-    postgresql_client_versions:
-      - 11
-      - 12
-      - 14
     postgresql_keyring_path: "/usr/share/keyrings/postgresql-keyring.gpg"
     clickhouse_keyring_path: "/usr/share/keyrings/clickhouse-keyring.gpg"
 
@@ -66,11 +62,10 @@
       apt:
         update_cache: yes
 
-    - name: Install pinned PostgreSQL client versions.
+    - name: Install latest PostgreSQL client.
       package:
-        name: "postgresql-client-{{ item }}"
+        name: postgresql-client
         state: present
-      loop: "{{ postgresql_client_versions }}"
 
     - name: Install clickhouse-client.
       package:

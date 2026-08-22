@@ -3,15 +3,19 @@
   connection: local
   become: true
 
-  vars:
-    sops_version: "3.9.4"
-
   tasks:
+    - name: Get latest sops release info.
+      uri:
+        url: "https://api.github.com/repos/getsops/sops/releases/latest"
+        return_content: yes
+      register: sops_release
+
     - name: Download sops binary.
       get_url:
-        url: "https://github.com/getsops/sops/releases/download/v{{ sops_version }}/sops-v{{ sops_version }}.linux.amd64"
+        url: "https://github.com/getsops/sops/releases/download/{{ sops_release.json.tag_name }}/sops-{{ sops_release.json.tag_name }}.linux.amd64"
         dest: "/usr/local/bin/sops"
         mode: '0755'
+        force: yes
 
     - name: Ensure sops is executable.
       file:

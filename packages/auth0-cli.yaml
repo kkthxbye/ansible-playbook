@@ -3,14 +3,20 @@
   connection: local
   become: true
 
-  vars:
-    auth0_cli_version: "1.32.0"
-    auth0_cli_archive: "auth0-cli_{{ auth0_cli_version }}_Linux_x86_64.tar.gz"
-
   tasks:
+    - name: Get latest Auth0 CLI release info.
+      uri:
+        url: "https://api.github.com/repos/auth0/auth0-cli/releases/latest"
+        return_content: yes
+      register: auth0_cli_release
+
+    - name: Set Auth0 CLI archive fact.
+      set_fact:
+        auth0_cli_archive: "auth0-cli_{{ auth0_cli_release.json.tag_name | regex_replace('^v', '') }}_Linux_x86_64.tar.gz"
+
     - name: Download Auth0 CLI archive.
       get_url:
-        url: "https://github.com/auth0/auth0-cli/releases/download/v{{ auth0_cli_version }}/{{ auth0_cli_archive }}"
+        url: "https://github.com/auth0/auth0-cli/releases/download/{{ auth0_cli_release.json.tag_name }}/{{ auth0_cli_archive }}"
         dest: "/tmp/{{ auth0_cli_archive }}"
         mode: '0644'
 
@@ -19,7 +25,6 @@
         src: "/tmp/{{ auth0_cli_archive }}"
         dest: "/usr/local/bin"
         remote_src: yes
-        creates: "/usr/local/bin/auth0"
 
     - name: Ensure Auth0 CLI is executable.
       file:

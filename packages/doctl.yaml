@@ -3,14 +3,20 @@
   connection: local
   become: true
 
-  vars:
-    doctl_version: "1.166.0"
-    doctl_archive: "doctl-{{ doctl_version }}-linux-amd64.tar.gz"
-
   tasks:
+    - name: Get latest doctl release info.
+      uri:
+        url: "https://api.github.com/repos/digitalocean/doctl/releases/latest"
+        return_content: yes
+      register: doctl_release
+
+    - name: Set doctl archive fact.
+      set_fact:
+        doctl_archive: "doctl-{{ doctl_release.json.tag_name | regex_replace('^v', '') }}-linux-amd64.tar.gz"
+
     - name: Download doctl archive.
       get_url:
-        url: "https://github.com/digitalocean/doctl/releases/download/v{{ doctl_version }}/{{ doctl_archive }}"
+        url: "https://github.com/digitalocean/doctl/releases/download/{{ doctl_release.json.tag_name }}/{{ doctl_archive }}"
         dest: "/tmp/{{ doctl_archive }}"
         mode: '0644'
 
@@ -19,7 +25,6 @@
         src: "/tmp/{{ doctl_archive }}"
         dest: "/usr/local/bin"
         remote_src: yes
-        creates: "/usr/local/bin/doctl"
 
     - name: Ensure doctl is executable.
       file:

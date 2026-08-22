@@ -6,10 +6,19 @@
   vars:
     user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
     home: "/home/{{ user }}"
-    kubectl_minor_version: "1.31"
     keyring_path: "/usr/share/keyrings/kubernetes-apt-keyring.gpg"
 
   tasks:
+    - name: Get latest stable Kubernetes release.
+      uri:
+        url: "https://dl.k8s.io/release/stable.txt"
+        return_content: yes
+      register: kubectl_stable_release
+
+    - name: Set Kubernetes minor version fact.
+      set_fact:
+        kubectl_minor_version: "{{ kubectl_stable_release.content | trim | regex_replace('^v(\\d+\\.\\d+)\\..*$', '\\1') }}"
+
     - name: Ensure prerequisites are installed.
       package:
         name:

@@ -4,18 +4,26 @@
   become: true
 
   tasks:
-    - name: Ensure prerequisites are installed.
-      package:
-        name: software-properties-common
-        state: present
-
-    - name: Add far2l PPA.
-      apt_repository:
-        repo: "ppa:far2l-team/ppa"
-        state: present
-
     - name: Install far2l.
-      apt:
-        name: far2l
-        state: present
-        update_cache: yes
+      block:
+        - name: Install far2l from the default repositories.
+          apt:
+            name: far2l
+            state: present
+            update_cache: yes
+      rescue:
+        - name: Ensure prerequisites are installed.
+          package:
+            name: software-properties-common
+            state: present
+
+        - name: Add far2l PPA.
+          apt_repository:
+            repo: "ppa:far2l-team/ppa"
+            state: present
+
+        - name: Install far2l from the PPA.
+          apt:
+            name: far2l
+            state: present
+            update_cache: yes

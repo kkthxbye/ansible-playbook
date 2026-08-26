@@ -1,0 +1,45 @@
+---
+- hosts: localhost
+  connection: local
+  become: yes
+
+  vars:
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+    far2l_settings_dir: "{{ home }}/.config/far2l/settings"
+    far2l_config_ini: "{{ far2l_settings_dir }}/config.ini"
+
+  tasks:
+    - name: Ensure far2l settings directory exists.
+      file:
+        path: "{{ far2l_settings_dir }}"
+        state: directory
+        mode: '0700'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Set far2l left panel defaults.
+      ini_file:
+        path: "{{ far2l_config_ini }}"
+        section: "Panel/Left"
+        option: "{{ item.option }}"
+        value: "{{ item.value }}"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0600'
+      loop:
+        - { option: "Folder", value: "/" }
+        - { option: "ViewMode", value: "3" }
+
+    - name: Set far2l right panel defaults.
+      ini_file:
+        path: "{{ far2l_config_ini }}"
+        section: "Panel/Right"
+        option: "{{ item.option }}"
+        value: "{{ item.value }}"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0600'
+      loop:
+        - { option: "Folder", value: "{{ home }}" }
+        - { option: "ViewMode", value: "3" }

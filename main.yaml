@@ -76,6 +76,8 @@
   tags: ['doctl']
 - import_playbook: packages/far2l.yaml
   tags: ['far2l']
+- import_playbook: bootstrap/far2l_config.yaml
+  tags: ['far2l', 'far2l-config']
 - import_playbook: packages/edit.yaml
   tags: ['edit']
 

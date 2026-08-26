@@ -76,6 +76,8 @@
   tags: ['doctl']
 - import_playbook: packages/far2l.yaml
   tags: ['far2l']
+- import_playbook: packages/edit.yaml
+  tags: ['edit']
 
 - import_playbook: bootstrap/identities.yaml
   tags: ['identities']

@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Get latest Microsoft Edit release info.
+      uri:
+        url: "https://api.github.com/repos/microsoft/edit/releases/latest"
+        return_content: yes
+      register: edit_release
+
+    - name: Set Microsoft Edit archive fact.
+      set_fact:
+        edit_version: "{{ edit_release.json.tag_name | regex_replace('^v', '') }}"
+        edit_archive: "edit-{{ edit_release.json.tag_name | regex_replace('^v', '') }}-x86_64-linux-gnu.tar.gz"
+
+    - name: Download Microsoft Edit archive.
+      get_url:
+        url: "https://github.com/microsoft/edit/releases/download/{{ edit_release.json.tag_name }}/{{ edit_archive }}"
+        dest: "/tmp/{{ edit_archive }}"
+        mode: '0644'
+
+    - name: Extract Microsoft Edit binary.
+      unarchive:
+        src: "/tmp/{{ edit_archive }}"
+        dest: "/usr/local/bin"
+        remote_src: yes
+
+    - name: Ensure Microsoft Edit is executable.
+      file:
+        path: "/usr/local/bin/edit"
+        mode: '0755'
+        state: file
+
+    - name: Remove downloaded archive.
+      file:
+        path: "/tmp/{{ edit_archive }}"
+        state: absent

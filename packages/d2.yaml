@@ -1,0 +1,43 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Get latest d2 release info.
+      uri:
+        url: "https://api.github.com/repos/terrastruct/d2/releases/latest"
+        return_content: yes
+      register: d2_release
+
+    - name: Set d2 archive fact.
+      set_fact:
+        d2_version: "{{ d2_release.json.tag_name }}"
+        d2_archive: "d2-{{ d2_release.json.tag_name }}-linux-amd64.tar.gz"
+
+    - name: Download d2 archive.
+      get_url:
+        url: "https://github.com/terrastruct/d2/releases/download/{{ d2_version }}/{{ d2_archive }}"
+        dest: "/tmp/{{ d2_archive }}"
+        mode: '0644'
+
+    - name: Extract d2 archive.
+      unarchive:
+        src: "/tmp/{{ d2_archive }}"
+        dest: "/tmp"
+        remote_src: yes
+
+    - name: Install d2 binary.
+      copy:
+        src: "/tmp/d2-{{ d2_version }}/bin/d2"
+        dest: "/usr/local/bin/d2"
+        mode: '0755'
+        remote_src: yes
+
+    - name: Remove downloaded archive and extracted files.
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/{{ d2_archive }}"
+        - "/tmp/d2-{{ d2_version }}"

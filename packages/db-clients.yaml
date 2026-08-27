@@ -5,14 +5,11 @@
 
   vars:
     postgresql_keyring_path: "/usr/share/keyrings/postgresql-keyring.gpg"
-    clickhouse_keyring_path: "/usr/share/keyrings/clickhouse-keyring.gpg"
 
   tasks:
-    - name: Install mysql-client and redis-tools.
+    - name: Install mysql-client.
       package:
-        name:
-          - mysql-client
-          - redis-tools
+        name: mysql-client
         state: present
 
     - name: Ensure prerequisites are installed.
@@ -41,23 +38,6 @@
         state: present
         filename: pgdg
 
-    - name: Download ClickHouse apt signing key.
-      get_url:
-        url: "https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key"
-        dest: "/tmp/clickhouse.key"
-        mode: '0644'
-
-    - name: Dearmor ClickHouse apt signing key.
-      shell: "gpg --dearmor -o {{ clickhouse_keyring_path }} /tmp/clickhouse.key"
-      args:
-        creates: "{{ clickhouse_keyring_path }}"
-
-    - name: Add ClickHouse apt repository.
-      apt_repository:
-        repo: "deb [signed-by={{ clickhouse_keyring_path }}] https://packages.clickhouse.com/deb stable main"
-        state: present
-        filename: clickhouse
-
     - name: Update apt package index.
       apt:
         update_cache: yes
@@ -65,9 +45,4 @@
     - name: Install latest PostgreSQL client.
       package:
         name: postgresql-client
-        state: present
-
-    - name: Install clickhouse-client.
-      package:
-        name: clickhouse-client
         state: present

@@ -29,7 +29,7 @@
         mode: '0600'
       loop:
         - { option: "Folder", value: "/" }
-        - { option: "ViewMode", value: "3" }
+        - { option: "ViewMode", value: "2" }
 
     - name: Set far2l right panel defaults.
       ini_file:
@@ -42,4 +42,14 @@
         mode: '0600'
       loop:
         - { option: "Folder", value: "{{ home }}" }
-        - { option: "ViewMode", value: "3" }
+        - { option: "ViewMode", value: "2" }
+
+    - name: Disable far2l exit confirmation.
+      ini_file:
+        path: "{{ far2l_config_ini }}"
+        section: "Confirmations"
+        option: "Exit"
+        value: "0"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0600'

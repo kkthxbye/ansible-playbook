@@ -15,4 +15,5 @@
           - tree
           - ncdu
           - sqlite3
+          - protobuf-compiler
         state: present

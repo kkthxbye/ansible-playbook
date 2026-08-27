@@ -30,3 +30,32 @@
     - name: Output public key
       debug:
         msg: "{{ keypair.public_key }}"
+
+    - name: Disable dynamic MOTD via PAM
+      replace:
+        path: /etc/pam.d/sshd
+        regexp: '^(session\s+optional\s+pam_motd\.so.*(?:noupdate|motd=/run/motd\.dynamic).*)$'
+        replace: '#\1'
+
+    - name: Truncate static MOTD
+      copy:
+        dest: /etc/motd
+        content: ""
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Disable MOTD and last-login banner in sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^#?\s*PrintMotd', line: 'PrintMotd no' }
+        - { regexp: '^#?\s*PrintLastLog', line: 'PrintLastLog no' }
+      notify: Restart sshd
+
+  handlers:
+    - name: Restart sshd
+      command: service ssh restart
+      changed_when: true

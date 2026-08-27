@@ -7,14 +7,11 @@
     user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
     home: "/home/{{ user }}"
     uv_tools:
-      - package: pyiceberg
-      - package: rust-just
-        bin: just
-      - package: keepercommander
-        bin: keeper
-      - package: snowflake-cli
-        bin: snow
-      - package: sqlfluff
+      - pyiceberg
+      - rust-just
+      - keepercommander
+      - snowflake-cli
+      - sqlfluff
 
   tasks:
     - name: Install build prerequisites.
@@ -27,26 +24,18 @@
         update_cache: yes
 
     - name: Install uv-managed CLI tools.
-      command: "{{ home }}/.local/bin/uv tool install {{ item.package }}"
+      command: "{{ home }}/.local/bin/uv tool install {{ item }}"
       become_user: "{{ user }}"
       become: yes
       loop: "{{ uv_tools }}"
-      loop_control:
-        label: "{{ item.package }}"
 
-    - name: Verify uv-managed CLI tool installations.
-      command: "{{ home }}/.local/bin/{{ item.bin | default(item.package) }} --version"
-      register: uv_tools_ver
+    - name: List installed uv-managed CLI tools.
+      command: "{{ home }}/.local/bin/uv tool list"
+      register: uv_tools_list
       become_user: "{{ user }}"
       become: yes
       changed_when: false
-      loop: "{{ uv_tools }}"
-      loop_control:
-        label: "{{ item.bin | default(item.package) }}"
 
-    - name: Display uv-managed CLI tool versions.
+    - name: Display installed uv-managed CLI tools.
       debug:
-        msg: "{{ item.item.bin | default(item.item.package) }}: {{ item.stdout }}"
-      loop: "{{ uv_tools_ver.results }}"
-      loop_control:
-        label: "{{ item.item.bin | default(item.item.package) }}"
+        var: uv_tools_list.stdout_lines

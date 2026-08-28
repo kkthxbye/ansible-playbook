@@ -4,9 +4,13 @@
   become: true
 
   tasks:
+    - name: Map ansible_architecture to telepresence release architecture.
+      set_fact:
+        telepresence_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
     - name: Download telepresence binary.
       get_url:
-        url: "https://app.getambassador.io/download/tel2/linux/amd64/latest/telepresence"
+        url: "https://app.getambassador.io/download/tel2/linux/{{ telepresence_arch }}/latest/telepresence"
         dest: "/usr/local/bin/telepresence"
         mode: '0755'
         force: yes

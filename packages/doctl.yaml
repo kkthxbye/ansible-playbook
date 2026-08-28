@@ -10,9 +10,13 @@
         return_content: yes
       register: doctl_release
 
+    - name: Map ansible_architecture to doctl release architecture.
+      set_fact:
+        doctl_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
     - name: Set doctl archive fact.
       set_fact:
-        doctl_archive: "doctl-{{ doctl_release.json.tag_name | regex_replace('^v', '') }}-linux-amd64.tar.gz"
+        doctl_archive: "doctl-{{ doctl_release.json.tag_name | regex_replace('^v', '') }}-linux-{{ doctl_arch }}.tar.gz"
 
     - name: Download doctl archive.
       get_url:

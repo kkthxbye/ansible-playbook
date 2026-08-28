@@ -16,4 +16,5 @@
           - ncdu
           - sqlite3
           - protobuf-compiler
+          - iptables
         state: present

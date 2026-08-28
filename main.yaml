@@ -12,7 +12,7 @@
 - import_playbook: bootstrap/atuin.yaml
   tags: ['atuin']
 - import_playbook: packages/cli-tools.yaml
-  tags: ['cli-tools']
+  tags: ['cli-tools', 'apt-packages']
 
 - import_playbook: packages/docker.yaml
   tags: ['docker']

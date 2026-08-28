@@ -12,6 +12,7 @@
       - keepercommander
       - snowflake-cli
       - sqlfluff
+      - "python-dotenv[cli]"
 
   tasks:
     - name: Install build prerequisites.

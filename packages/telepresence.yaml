@@ -10,7 +10,7 @@
 
     - name: Download telepresence binary.
       get_url:
-        url: "https://app.getambassador.io/download/tel2/linux/{{ telepresence_arch }}/latest/telepresence"
+        url: "https://app.getambassador.io/download/tel2/linux/{{ telepresence_arch }}/2.7.6/telepresence"
         dest: "/usr/local/bin/telepresence"
         mode: '0755'
         force: yes

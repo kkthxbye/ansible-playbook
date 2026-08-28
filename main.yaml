@@ -18,6 +18,8 @@
   tags: ['docker']
 - import_playbook: packages/k9s.yaml
   tags: ['k9s']
+- import_playbook: bootstrap/k9s_config.yaml
+  tags: ['k9s', 'k9s-config']
 - import_playbook: packages/minikube.yaml
   tags: ['minikube']
 - import_playbook: packages/kubectl.yaml

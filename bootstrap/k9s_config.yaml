@@ -1,0 +1,52 @@
+---
+- hosts: localhost
+  connection: local
+  become: yes
+
+  vars:
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    home: "/home/{{ user }}"
+    k9s_config_dir: "{{ home }}/.config/k9s"
+    k9s_config_source_host: "kkthxbye-work-wsl-native"
+
+  tasks:
+    - name: Ensure ~/.config/k9s exists.
+      file:
+        path: "{{ k9s_config_dir }}"
+        state: directory
+        mode: '0700'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Check SSH connectivity to {{ k9s_config_source_host }}.
+      command: ssh -o BatchMode=yes -o ConnectTimeout=5 {{ k9s_config_source_host }} true
+      become_user: "{{ user }}"
+      become: yes
+      register: k9s_source_check
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Warn if the k9s config source host is unreachable.
+      debug:
+        msg: >-
+          Could not reach '{{ k9s_config_source_host }}' over SSH. Ensure it's defined
+          in ~/.ssh/config and reachable, then re-run this playbook (--tags k9s-config)
+          to copy down the k9s config.
+      when: k9s_source_check is failed
+
+    - name: Copy k9s config from {{ k9s_config_source_host }}.
+      command: >-
+        scp -r -o BatchMode=yes {{ k9s_config_source_host }}:.config/k9s/. {{ k9s_config_dir }}/
+      become_user: "{{ user }}"
+      become: yes
+      when: k9s_source_check is succeeded
+      changed_when: true
+
+    - name: Ensure copied k9s config is owned by {{ user }}.
+      file:
+        path: "{{ k9s_config_dir }}"
+        state: directory
+        recurse: yes
+        owner: "{{ user }}"
+        group: "{{ user }}"
+      when: k9s_source_check is succeeded

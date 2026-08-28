@@ -5,26 +5,33 @@
 
   vars:
     k9s_version: "latest"
-    k9s_download_url: >-
-      {{
-        'https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb'
-        if k9s_version == 'latest'
-        else 'https://github.com/derailed/k9s/releases/download/' + k9s_version + '/k9s_linux_amd64.deb'
-      }}
 
   tasks:
+    - name: Map ansible_architecture to k9s release architecture.
+      set_fact:
+        k9s_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
+    - name: Set k9s download URL.
+      set_fact:
+        k9s_download_url: >-
+          {{
+            'https://github.com/derailed/k9s/releases/latest/download/k9s_linux_' + k9s_arch + '.deb'
+            if k9s_version == 'latest'
+            else 'https://github.com/derailed/k9s/releases/download/' + k9s_version + '/k9s_linux_' + k9s_arch + '.deb'
+          }}
+
     - name: Download k9s .deb package.
       get_url:
         url: "{{ k9s_download_url }}"
-        dest: "/tmp/k9s_linux_amd64.deb"
+        dest: "/tmp/k9s_linux_{{ k9s_arch }}.deb"
         mode: '0644'
 
     - name: Install k9s package.
       apt:
-        deb: "/tmp/k9s_linux_amd64.deb"
+        deb: "/tmp/k9s_linux_{{ k9s_arch }}.deb"
         state: present
 
     - name: Remove downloaded deb file.
       file:
-        path: "/tmp/k9s_linux_amd64.deb"
+        path: "/tmp/k9s_linux_{{ k9s_arch }}.deb"
         state: absent

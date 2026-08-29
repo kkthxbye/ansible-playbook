@@ -110,22 +110,7 @@
       register: snowflake_pubkey_body
       changed_when: false
 
-    - name: Check Snowflake connectivity.
-      command: "snow sql -c {{ snowflake_connection }} -q \"select 1\""
-      register: snowflake_check
-      retries: 3
-      delay: 1
-      until: snowflake_check.rc == 0
-      ignore_errors: yes
-      changed_when: false
-
-    - name: Warn if Snowflake is not reachable.
-      debug:
-        msg: "Could not reach Snowflake with connection '{{ snowflake_connection }}'. Run 'snow connection add' to configure one, then re-run this playbook to register the key-pair."
-      when: snowflake_check.rc != 0
-
     - name: Register RSA public key with Snowflake user.
       command: >-
         snow sql -c {{ snowflake_connection }} -q
         "ALTER USER {{ snowflake_username }} SET RSA_PUBLIC_KEY='{{ snowflake_pubkey_body.stdout }}'"
-      when: snowflake_check.rc == 0

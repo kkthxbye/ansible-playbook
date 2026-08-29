@@ -4,7 +4,7 @@
   become: yes
 
   vars:
-    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_facts.user_id) }}"
     home: "/home/{{ user }}"
     far2l_settings_dir: "{{ home }}/.config/far2l/settings"
     far2l_config_ini: "{{ far2l_settings_dir }}/config.ini"

@@ -4,7 +4,7 @@
   become: false
 
   vars:
-    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_facts.user_id) }}"
     home: "/home/{{ user }}"
     atuin_bin: "{{ home }}/.atuin/bin/atuin"
     atuin_snippet_path: "{{ home }}/.atuin/powershell-profile-snippet.ps1"

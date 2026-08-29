@@ -4,7 +4,7 @@
   become: true
 
   vars:
-    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_facts.user_id) }}"
     home: "/home/{{ user }}"
     repo_url: "https://github.com/kkthxbye/mysqlps.git"
     repo_dest: "{{ home }}/code/MySqlPs"

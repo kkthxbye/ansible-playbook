@@ -7,9 +7,9 @@
     k9s_version: "latest"
 
   tasks:
-    - name: Map ansible_architecture to k9s release architecture.
+    - name: Map ansible_facts.architecture to k9s release architecture.
       set_fact:
-        k9s_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+        k9s_arch: "{{ 'arm64' if ansible_facts.architecture == 'aarch64' else 'amd64' }}"
 
     - name: Set k9s download URL.
       set_fact:

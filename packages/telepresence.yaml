@@ -4,9 +4,9 @@
   become: true
 
   tasks:
-    - name: Map ansible_architecture to telepresence release architecture.
+    - name: Map ansible_facts.architecture to telepresence release architecture.
       set_fact:
-        telepresence_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+        telepresence_arch: "{{ 'arm64' if ansible_facts.architecture == 'aarch64' else 'amd64' }}"
 
     - name: Download telepresence binary.
       get_url:

@@ -3,7 +3,7 @@
   become: yes
 
   vars:
-    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_facts.user_id) }}"
     pwsh_supported_ubuntu_versions:
       - "24.04"
       - "22.04"
@@ -21,7 +21,7 @@
         update_cache: yes
 
     - name: Install PowerShell via apt (x86_64)
-      when: ansible_architecture == 'x86_64'
+      when: ansible_facts.architecture == 'x86_64'
       block:
         - name: Read OS release info
           ansible.builtin.shell: |
@@ -76,7 +76,7 @@
             state: present
 
     - name: Install PowerShell via binary archive (arm64)
-      when: ansible_architecture == 'aarch64'
+      when: ansible_facts.architecture == 'aarch64'
       block:
         - name: Create PowerShell install directory
           ansible.builtin.file:

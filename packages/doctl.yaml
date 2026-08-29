@@ -10,9 +10,9 @@
         return_content: yes
       register: doctl_release
 
-    - name: Map ansible_architecture to doctl release architecture.
+    - name: Map ansible_facts.architecture to doctl release architecture.
       set_fact:
-        doctl_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+        doctl_arch: "{{ 'arm64' if ansible_facts.architecture == 'aarch64' else 'amd64' }}"
 
     - name: Set doctl archive fact.
       set_fact:

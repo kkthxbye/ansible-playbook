@@ -4,7 +4,7 @@
   become: yes
 
   vars:
-    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_facts.user_id) }}"
     home: "/home/{{ user }}"
     k9s_config_dir: "{{ home }}/.config/k9s"
     k9s_config_source_host: "kkthxbye-work-wsl-native"

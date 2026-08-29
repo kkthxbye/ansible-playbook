@@ -4,7 +4,7 @@
   become: yes
 
   vars:
-    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_user_id) }}"
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_facts.user_id) }}"
     home: "/home/{{ user }}"
     aws_config_dir: "{{ home }}/.aws"
     aws_sso_start_url: "CHANGE_ME"

@@ -31,6 +31,11 @@
       debug:
         msg: "{{ keypair.public_key }}"
 
+    - name: Ensure openssh-server is installed
+      apt:
+        name: openssh-server
+        state: present
+
     - name: Disable dynamic MOTD via PAM
       replace:
         path: /etc/pam.d/sshd

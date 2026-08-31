@@ -27,3 +27,9 @@
             name: far2l
             state: present
             update_cache: yes
+
+    - name: Create 'far' alias for far2l.
+      file:
+        src: /usr/bin/far2l
+        dest: /usr/local/bin/far
+        state: link

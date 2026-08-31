@@ -48,8 +48,11 @@
       ini_file:
         path: "{{ far2l_config_ini }}"
         section: "Confirmations"
-        option: "Exit"
+        option: "{{ item }}"
         value: "0"
         owner: "{{ user }}"
         group: "{{ user }}"
         mode: '0600'
+      loop:
+        - "Exit"
+        - "ExitOrBknd"

@@ -68,7 +68,35 @@
         line: 'Port 8022'
       notify: Restart sshd
 
+    - name: Ensure ssh.socket drop-in directory exists
+      file:
+        path: /etc/systemd/system/ssh.socket.d
+        state: directory
+        mode: '0755'
+
+    - name: Override ssh.socket to listen on port 8022
+      copy:
+        dest: /etc/systemd/system/ssh.socket.d/override.conf
+        content: |
+          [Socket]
+          ListenStream=
+          ListenStream=0.0.0.0:8022
+          ListenStream=[::]:8022
+        mode: '0644'
+      notify:
+        - Reload systemd
+        - Restart ssh.socket
+
   handlers:
     - name: Restart sshd
       command: service ssh restart
       changed_when: true
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: true
+
+    - name: Restart ssh.socket
+      systemd:
+        name: ssh.socket
+        state: restarted

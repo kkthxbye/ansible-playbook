@@ -1,6 +1,7 @@
 - hosts: localhost
   connection: local
   become: yes
+  tags: ssh
 
   vars:
     user: "{{ ansible_facts.env.SUDO_USER | default(ansible_facts.user_id) }}"
@@ -58,6 +59,13 @@
       loop:
         - { regexp: '^#?\s*PrintMotd', line: 'PrintMotd no' }
         - { regexp: '^#?\s*PrintLastLog', line: 'PrintLastLog no' }
+      notify: Restart sshd
+
+    - name: Configure sshd to listen on port 8022
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?\s*Port\s'
+        line: 'Port 8022'
       notify: Restart sshd
 
   handlers:

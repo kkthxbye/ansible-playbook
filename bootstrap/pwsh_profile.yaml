@@ -62,8 +62,8 @@
     - name: Install PowerShell modules.
       command: >-
         pwsh -Command "Install-Module -Name PSFzf, powershell-yaml, CompletionPredictor,
-        AWSCompleter, dotenv, Graphical, JoinModule, posh-cli, PowerShell-Beautifier,
-        PSParquet, PSProfiler, PSReadLine, PSScriptAnalyzer, SqlServer, Sudo
-        -Force -Scope CurrentUser"
+        AWSCompleter, dotenv, Graphical, InvokeBuild, JoinModule, Microsoft.PowerShell.Crescendo,
+        posh-cli, PowerShell-Beautifier, PSParquet, PSProfiler, PSReadLine, PSScriptAnalyzer,
+        SqlServer, Sudo -Force -Scope CurrentUser"
       become_user: "{{ user }}"
       become: yes

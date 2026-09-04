@@ -1,0 +1,142 @@
+- name: Check whether the pwsh wrapper is already installed.
+  stat:
+    path: /usr/local/bin/pwsh
+  register: pwsh_wrapper_installed
+
+- name: Install PowerShell (pwsh)
+  when: not pwsh_wrapper_installed.stat.exists
+  vars:
+    pwsh_supported_ubuntu_versions:
+      - "24.04"
+      - "22.04"
+      - "20.04"
+  block:
+    - name: Install prerequisites
+      apt:
+        name:
+          - wget
+          - gnupg
+          - apt-transport-https
+          - software-properties-common
+        state: present
+        update_cache: yes
+
+    - name: Install PowerShell via apt (x86_64)
+      when: ansible_facts.architecture == 'x86_64'
+      block:
+        - name: Read OS release info
+          ansible.builtin.shell: |
+            . /etc/os-release
+            echo $VERSION_ID
+          register: ubuntu_version
+          changed_when: false
+
+        - name: Fall back to the newest Ubuntu release Microsoft has published the powershell package for.
+          set_fact:
+            pwsh_ms_repo_version: >-
+              {{ ubuntu_version.stdout if ubuntu_version.stdout in pwsh_supported_ubuntu_versions
+              else pwsh_supported_ubuntu_versions[0] }}
+
+        - name: Download Microsoft package repo .deb
+          ansible.builtin.get_url:
+            url: "https://packages.microsoft.com/config/ubuntu/{{ pwsh_ms_repo_version }}/packages-microsoft-prod.deb"
+            dest: "/tmp/packages-microsoft-prod.deb"
+            mode: '0644'
+
+        - name: Install Microsoft package repo .deb
+          ansible.builtin.command: dpkg --force-confnew -i /tmp/packages-microsoft-prod.deb
+
+        - name: Download Microsoft's current signing key.
+          ansible.builtin.get_url:
+            url: "https://packages.microsoft.com/keys/microsoft.asc"
+            dest: "/tmp/microsoft.asc"
+            mode: '0644'
+
+        - name: Import Microsoft's current signing key into the repo keyring.
+          ansible.builtin.shell: >-
+            gpg --no-default-keyring --keyring /usr/share/keyrings/microsoft-prod.gpg
+            --import /tmp/microsoft.asc
+
+        - name: Remove downloaded .deb
+          ansible.builtin.file:
+            path: "/tmp/packages-microsoft-prod.deb"
+            state: absent
+
+        - name: Remove downloaded signing key.
+          ansible.builtin.file:
+            path: "/tmp/microsoft.asc"
+            state: absent
+
+        - name: Update apt cache after adding Microsoft repo
+          apt:
+            update_cache: yes
+
+        - name: Install PowerShell
+          apt:
+            name: powershell
+            state: present
+
+    - name: Install PowerShell via binary archive (arm64)
+      when: ansible_facts.architecture == 'aarch64'
+      block:
+        - name: Create PowerShell install directory
+          ansible.builtin.file:
+            path: /opt/microsoft/powershell/7
+            state: directory
+            mode: '0755'
+
+        - name: Look up the latest PowerShell release
+          ansible.builtin.uri:
+            url: https://api.github.com/repos/PowerShell/PowerShell/releases/latest
+            return_content: yes
+          register: pwsh_latest_release
+
+        - name: Set the latest PowerShell version
+          set_fact:
+            pwsh_version: "{{ pwsh_latest_release.json.tag_name | regex_replace('^v', '') }}"
+
+        - name: Download and extract PowerShell binary archive
+          ansible.builtin.unarchive:
+            src: "https://github.com/PowerShell/PowerShell/releases/download/v{{ pwsh_version }}/powershell-{{ pwsh_version }}-linux-arm64.tar.gz"
+            dest: /opt/microsoft/powershell/7
+            remote_src: yes
+            creates: /opt/microsoft/powershell/7/pwsh
+
+        - name: Set execute permissions on pwsh binary
+          ansible.builtin.file:
+            path: /opt/microsoft/powershell/7/pwsh
+            mode: '0755'
+
+        - name: Find the available libicu runtime package
+          ansible.builtin.shell: apt-cache search libicu | grep -E '^libicu[0-9]+ ' | awk '{print $1}' | sort -V | tail -n1
+          register: libicu_pkg
+          changed_when: false
+
+        - name: Install ICU runtime library required by the PowerShell binary archive
+          apt:
+            name: "{{ libicu_pkg.stdout }}"
+            state: present
+          when: libicu_pkg.stdout != ''
+
+    - name: Install pwsh wrapper script
+      copy:
+        dest: /usr/local/bin/pwsh
+        owner: root
+        group: root
+        mode: '0755'
+        content: |
+          #!/bin/bash
+          exec /opt/microsoft/powershell/7/pwsh -login -nologo "$@"
+
+    - name: Ensure pwsh wrapper is listed as an allowed shell
+      lineinfile:
+        path: /etc/shells
+        line: /usr/local/bin/pwsh
+        state: present
+        create: yes
+
+    - name: Change login shell of the play user to the wrapper
+      user:
+        name: "{{ user }}"
+        shell: /usr/local/bin/pwsh
+      when: user is defined and user != 'root'

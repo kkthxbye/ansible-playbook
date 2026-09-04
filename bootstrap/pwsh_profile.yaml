@@ -9,6 +9,8 @@
     repo_dest: "{{ home }}/.pwsh-profile"
 
   tasks:
+    - import_tasks: tasks/install_pwsh.yml
+
     - name: Clone PowerShell profile repo.
       git:
         repo: "{{ repo_url }}"

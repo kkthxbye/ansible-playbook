@@ -10,9 +10,13 @@
         return_content: yes
       register: sops_release
 
+    - name: Map ansible_facts.architecture to sops release architecture.
+      set_fact:
+        sops_arch: "{{ 'arm64' if ansible_facts.architecture == 'aarch64' else 'amd64' }}"
+
     - name: Download sops binary.
       get_url:
-        url: "https://github.com/getsops/sops/releases/download/{{ sops_release.json.tag_name }}/sops-{{ sops_release.json.tag_name }}.linux.amd64"
+        url: "https://github.com/getsops/sops/releases/download/{{ sops_release.json.tag_name }}/sops-{{ sops_release.json.tag_name }}.linux.{{ sops_arch }}"
         dest: "/usr/local/bin/sops"
         mode: '0755'
         force: yes

@@ -8,13 +8,6 @@
     home: "/home/{{ user }}"
 
   tasks:
-    - name: Install Node.js.
-      package:
-        name:
-          - nodejs
-          - npm
-        state: present
-
     - name: Get latest nvm release info.
       uri:
         url: "https://api.github.com/repos/nvm-sh/nvm/releases/latest"
@@ -26,3 +19,29 @@
       shell: "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_release.json.tag_name }}/install.sh | bash"
       environment:
         PROFILE: /dev/null
+      args:
+        creates: "{{ home }}/.nvm/nvm.sh"
+
+    - name: Install latest Node.js via nvm.
+      become: false
+      shell: |
+        export NVM_DIR="{{ home }}/.nvm"
+        \. "$NVM_DIR/nvm.sh"
+        nvm install node
+        nvm alias default node
+        nvm version node
+      args:
+        executable: /bin/bash
+      register: nvm_install_node
+      changed_when: "'is already installed' not in nvm_install_node.stdout"
+
+    - name: Symlink node, npm and npx into /usr/local/bin.
+      file:
+        src: "{{ home }}/.nvm/versions/node/{{ nvm_install_node.stdout_lines[-1] }}/bin/{{ item }}"
+        dest: "/usr/local/bin/{{ item }}"
+        state: link
+        force: yes
+      loop:
+        - node
+        - npm
+        - npx

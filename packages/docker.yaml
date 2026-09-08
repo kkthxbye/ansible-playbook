@@ -6,6 +6,11 @@
   vars:
     user: "{{ ansible_facts.env.SUDO_USER | default(ansible_facts.user_id) }}"
     keyring_path: "/usr/share/keyrings/docker-archive-keyring.gpg"
+    docker_apt_arch_map:
+      x86_64: amd64
+      aarch64: arm64
+      armv7l: armhf
+    docker_apt_arch: "{{ docker_apt_arch_map[ansible_facts.architecture] | default(ansible_facts.architecture) }}"
 
   tasks:
     - name: Ensure prerequisites are installed.
@@ -36,7 +41,7 @@
 
     - name: Add Docker apt repository.
       apt_repository:
-        repo: "deb [arch=amd64 signed-by={{ keyring_path }}] https://download.docker.com/linux/ubuntu {{ ansible_facts.distribution_release }} stable"
+        repo: "deb [arch={{ docker_apt_arch }} signed-by={{ keyring_path }}] https://download.docker.com/linux/ubuntu {{ ansible_facts.distribution_release }} stable"
         state: present
         filename: docker
 
@@ -50,6 +55,7 @@
           - docker-ce
           - docker-ce-cli
           - containerd.io
+          - docker-compose-plugin
         state: present
 
     - name: Ensure docker group exists.

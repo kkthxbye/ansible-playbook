@@ -1,6 +1,7 @@
 - hosts: localhost
   connection: local
   become: yes
+  gather_facts: no
 
   vars:
     user: "{{ ansible_facts.env.SUDO_USER | default(ansible_facts.user_id) }}"
@@ -9,6 +10,10 @@
     repo_dest: "{{ home }}/.pwsh-profile"
 
   tasks:
+    - name: Gather facts.
+      setup:
+      tags: always
+
     - import_tasks: tasks/install_pwsh.yml
 
     - name: Clone PowerShell profile repo.
@@ -69,3 +74,4 @@
         SqlServer, Sudo -Force -Scope CurrentUser"
       become_user: "{{ user }}"
       become: yes
+      tags: ['pwsh-modules']

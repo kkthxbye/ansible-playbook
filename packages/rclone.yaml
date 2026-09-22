@@ -1,0 +1,55 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Install unzip and fuse3.
+      apt:
+        name:
+          - unzip
+          - fuse3
+        state: present
+        update_cache: yes
+
+    - name: Map ansible_facts.architecture to rclone release architecture.
+      set_fact:
+        rclone_arch: "{{ 'arm64' if ansible_facts.architecture == 'aarch64' else 'amd64' }}"
+
+    - name: Get latest rclone release info.
+      uri:
+        url: "https://api.github.com/repos/rclone/rclone/releases/latest"
+        return_content: yes
+      register: rclone_release
+
+    - name: Set rclone archive fact.
+      set_fact:
+        rclone_version: "{{ rclone_release.json.tag_name }}"
+        rclone_archive: "rclone-{{ rclone_release.json.tag_name }}-linux-{{ rclone_arch }}.zip"
+
+    - name: Download rclone archive.
+      get_url:
+        url: "https://github.com/rclone/rclone/releases/download/{{ rclone_version }}/{{ rclone_archive }}"
+        dest: "/tmp/{{ rclone_archive }}"
+        mode: '0644'
+
+    - name: Extract rclone archive.
+      unarchive:
+        src: "/tmp/{{ rclone_archive }}"
+        dest: "/tmp"
+        remote_src: yes
+
+    - name: Install rclone binary.
+      copy:
+        src: "/tmp/rclone-{{ rclone_version }}-linux-{{ rclone_arch }}/rclone"
+        dest: "/usr/local/bin/rclone"
+        mode: '0755'
+        remote_src: yes
+
+    - name: Remove downloaded archive and extracted files.
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/{{ rclone_archive }}"
+        - "/tmp/rclone-{{ rclone_version }}-linux-{{ rclone_arch }}"

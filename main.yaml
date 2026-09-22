@@ -72,6 +72,10 @@
   tags: ['auth0-cli']
 - import_playbook: packages/doctl.yaml
   tags: ['doctl']
+- import_playbook: packages/rclone.yaml
+  tags: ['rclone']
+- import_playbook: bootstrap/rclone_config.yaml
+  tags: ['rclone', 'rclone-config']
 - import_playbook: packages/far2l.yaml
   tags: ['far2l']
 - import_playbook: bootstrap/far2l_config.yaml

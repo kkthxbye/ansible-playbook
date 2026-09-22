@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  connection: local
+  become: yes
+
+  vars:
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_facts.user_id) }}"
+    home: "/home/{{ user }}"
+    rclone_config_dir: "{{ home }}/.config/rclone"
+    rclone_aws_profile: "CHANGE_ME"
+
+  tasks:
+    - name: Ensure ~/.config/rclone exists.
+      file:
+        path: "{{ rclone_config_dir }}"
+        state: directory
+        mode: '0700'
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Template ~/.config/rclone/rclone.conf.
+      copy:
+        dest: "{{ rclone_config_dir }}/rclone.conf"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0600'
+        content: |
+          [s3]
+          type = s3
+          provider = AWS
+          env_auth = true
+          profile = {{ rclone_aws_profile }}

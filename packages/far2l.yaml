@@ -3,33 +3,82 @@
   connection: local
   become: true
 
+  vars:
+    user: "{{ ansible_facts.env.SUDO_USER | default(ansible_facts.user_id) }}"
+    home: "/home/{{ user }}"
+    far2l_repo_dest: "{{ home }}/code/far2l"
+    far2l_build_dir: "{{ far2l_repo_dest }}/build"
+
   tasks:
+    - name: Install far2l build dependencies.
+      apt:
+        name:
+          - cmake
+          - g++
+          - pkg-config
+          - libwxgtk3.2-dev
+          - libx11-dev
+          - libxi-dev
+          - libuchardet-dev
+          - libxml2-dev
+          - libarchive-dev
+          - libssh-dev
+          - python3-dev
+          - python3-cffi
+          - libneon27-dev
+          - libssl-dev
+        state: present
+        update_cache: yes
+
+    - name: Clone far2l repo.
+      git:
+        repo: "https://github.com/elfmz/far2l.git"
+        dest: "{{ far2l_repo_dest }}"
+        version: master
+        update: yes
+      become_user: "{{ user }}"
+      become: yes
+      register: far2l_clone
+      ignore_errors: yes
+
+    - name: Warn if far2l repo has local modifications.
+      debug:
+        msg: "{{ far2l_repo_dest }} has local modifications; skipping build. Commit or stash your changes, then re-run this playbook."
+      when: far2l_clone is failed
+
+    - name: Ensure far2l build directory exists.
+      file:
+        path: "{{ far2l_build_dir }}"
+        state: directory
+        owner: "{{ user }}"
+        group: "{{ user }}"
+      when: far2l_clone is succeeded
+
+    - name: Configure far2l build.
+      command: cmake ..
+      args:
+        chdir: "{{ far2l_build_dir }}"
+      become_user: "{{ user }}"
+      become: yes
+      when: far2l_clone is succeeded
+
+    - name: Build far2l.
+      command: "make -j{{ ansible_facts.processor_vcpus | default(2) }}"
+      args:
+        chdir: "{{ far2l_build_dir }}"
+      become_user: "{{ user }}"
+      become: yes
+      when: far2l_clone is succeeded
+
     - name: Install far2l.
-      block:
-        - name: Install far2l from the default repositories.
-          apt:
-            name: far2l
-            state: present
-            update_cache: yes
-      rescue:
-        - name: Ensure prerequisites are installed.
-          package:
-            name: software-properties-common
-            state: present
-
-        - name: Add far2l PPA.
-          apt_repository:
-            repo: "ppa:far2l-team/ppa"
-            state: present
-
-        - name: Install far2l from the PPA.
-          apt:
-            name: far2l
-            state: present
-            update_cache: yes
+      command: make install
+      args:
+        chdir: "{{ far2l_build_dir }}"
+      when: far2l_clone is succeeded
 
     - name: Create 'far' alias for far2l.
       file:
         src: /usr/bin/far2l
         dest: /usr/local/bin/far
         state: link
+      when: far2l_clone is succeeded

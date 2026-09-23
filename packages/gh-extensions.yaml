@@ -1,0 +1,33 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+
+  vars:
+    gh_extensions:
+      - nektos/gh-act
+
+  tasks:
+    - name: Check gh authentication status.
+      command: gh auth status
+      register: gh_auth_status
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Warn if gh is not authenticated.
+      debug:
+        msg: "gh is not authenticated. Run 'gh auth login' manually, then re-run this playbook to install gh extensions."
+      when: gh_auth_status.rc != 0
+
+    - name: List installed gh extensions.
+      command: gh extension list
+      register: gh_extension_list
+      when: gh_auth_status.rc == 0
+      changed_when: false
+
+    - name: Install gh extensions.
+      command: "gh extension install {{ item }}"
+      loop: "{{ gh_extensions }}"
+      when:
+        - gh_auth_status.rc == 0
+        - item not in gh_extension_list.stdout

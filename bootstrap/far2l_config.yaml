@@ -56,3 +56,13 @@
       loop:
         - "Exit"
         - "ExitOrBknd"
+
+    - name: Bind "5" to the other panel's folder in the far2l location menu.
+      ini_file:
+        path: "{{ far2l_config_ini }}"
+        section: "MountsHotkeys"
+        option: "00000002"
+        value: "5"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0600'

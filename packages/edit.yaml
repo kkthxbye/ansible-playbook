@@ -13,7 +13,7 @@
     - name: Set Microsoft Edit archive fact.
       set_fact:
         edit_version: "{{ edit_release.json.tag_name | regex_replace('^v', '') }}"
-        edit_archive: "edit-{{ edit_release.json.tag_name | regex_replace('^v', '') }}-x86_64-linux-gnu.tar.gz"
+        edit_archive: "edit-{{ edit_release.json.tag_name | regex_replace('^v', '') }}-{{ 'aarch64' if ansible_facts.architecture == 'aarch64' else 'x86_64' }}-linux-gnu.tar.gz"
 
     - name: Download Microsoft Edit archive.
       get_url:

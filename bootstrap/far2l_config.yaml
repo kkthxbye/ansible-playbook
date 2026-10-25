@@ -57,6 +57,16 @@
         - "Exit"
         - "ExitOrBknd"
 
+    - name: Disable far2l classic palette override in the TTY backend.
+      ini_file:
+        path: "{{ far2l_config_ini }}"
+        section: "Interface"
+        option: "TTYPaletteOverride"
+        value: "0"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: '0600'
+
     - name: Bind "5" to the other panel's folder in the far2l location menu.
       ini_file:
         path: "{{ far2l_config_ini }}"

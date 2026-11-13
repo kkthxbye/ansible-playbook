@@ -1,0 +1,44 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Get latest grpcurl release info.
+      uri:
+        url: "https://api.github.com/repos/fullstorydev/grpcurl/releases/latest"
+        return_content: yes
+      register: grpcurl_release
+
+    - name: Map ansible_facts.architecture to grpcurl release architecture.
+      set_fact:
+        grpcurl_arch: "{{ 'arm64' if ansible_facts.architecture == 'aarch64' else 'x86_64' }}"
+
+    - name: Set grpcurl archive fact.
+      set_fact:
+        grpcurl_archive: "grpcurl_{{ grpcurl_release.json.tag_name | regex_replace('^v', '') }}_linux_{{ grpcurl_arch }}.tar.gz"
+
+    - name: Download grpcurl archive.
+      get_url:
+        url: "https://github.com/fullstorydev/grpcurl/releases/download/{{ grpcurl_release.json.tag_name }}/{{ grpcurl_archive }}"
+        dest: "/tmp/{{ grpcurl_archive }}"
+        mode: '0644'
+
+    - name: Extract grpcurl binary.
+      unarchive:
+        src: "/tmp/{{ grpcurl_archive }}"
+        dest: "/usr/local/bin"
+        remote_src: yes
+        extra_opts:
+          - grpcurl
+
+    - name: Ensure grpcurl is executable.
+      file:
+        path: "/usr/local/bin/grpcurl"
+        mode: '0755'
+        state: file
+
+    - name: Remove downloaded archive.
+      file:
+        path: "/tmp/{{ grpcurl_archive }}"
+        state: absent

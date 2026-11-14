@@ -17,14 +17,12 @@
         state: directory
         mode: '0700'
         owner: "{{ user }}"
-        group: "{{ user }}"
 
     - name: Generate ed25519 SSH keypair for the invoking user
       openssh_keypair:
         path: "{{ private_key }}"
         type: ed25519
         owner: "{{ user }}"
-        group: "{{ user }}"
         mode: '0600'
       register: keypair
 

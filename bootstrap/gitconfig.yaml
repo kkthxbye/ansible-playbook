@@ -12,7 +12,6 @@
       copy:
         dest: "{{ home }}/.gitconfig"
         owner: "{{ user }}"
-        group: "{{ user }}"
         mode: '0644'
         content: |
           [pull]

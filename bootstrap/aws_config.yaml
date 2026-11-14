@@ -18,13 +18,11 @@
         state: directory
         mode: '0700'
         owner: "{{ user }}"
-        group: "{{ user }}"
 
     - name: Template ~/.aws/config.
       copy:
         dest: "{{ aws_config_dir }}/config"
         owner: "{{ user }}"
-        group: "{{ user }}"
         mode: '0600'
         content: |
           [default]

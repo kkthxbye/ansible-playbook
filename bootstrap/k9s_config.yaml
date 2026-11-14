@@ -16,7 +16,6 @@
         state: directory
         mode: '0700'
         owner: "{{ user }}"
-        group: "{{ user }}"
 
     - name: Check SSH connectivity to {{ k9s_config_source_host }}.
       command: ssh -o BatchMode=yes -o ConnectTimeout=5 {{ k9s_config_source_host }} true
@@ -48,5 +47,4 @@
         state: directory
         recurse: yes
         owner: "{{ user }}"
-        group: "{{ user }}"
       when: k9s_source_check is succeeded

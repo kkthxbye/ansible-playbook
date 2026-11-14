@@ -16,7 +16,6 @@
         state: directory
         mode: '0700'
         owner: "{{ user }}"
-        group: "{{ user }}"
 
     - name: Set far2l left panel defaults.
       ini_file:
@@ -25,7 +24,6 @@
         option: "{{ item.option }}"
         value: "{{ item.value }}"
         owner: "{{ user }}"
-        group: "{{ user }}"
         mode: '0600'
       loop:
         - { option: "Folder", value: "/" }
@@ -38,7 +36,6 @@
         option: "{{ item.option }}"
         value: "{{ item.value }}"
         owner: "{{ user }}"
-        group: "{{ user }}"
         mode: '0600'
       loop:
         - { option: "Folder", value: "{{ home }}" }
@@ -51,7 +48,6 @@
         option: "{{ item }}"
         value: "0"
         owner: "{{ user }}"
-        group: "{{ user }}"
         mode: '0600'
       loop:
         - "Exit"
@@ -64,7 +60,6 @@
         option: "TTYPaletteOverride"
         value: "0"
         owner: "{{ user }}"
-        group: "{{ user }}"
         mode: '0600'
 
     - name: Bind "5" to the other panel's folder in the far2l location menu.
@@ -74,5 +69,4 @@
         option: "00000002"
         value: "5"
         owner: "{{ user }}"
-        group: "{{ user }}"
         mode: '0600'

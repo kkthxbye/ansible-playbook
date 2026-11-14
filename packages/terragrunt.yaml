@@ -15,7 +15,6 @@
         state: directory
         mode: '0755'
         owner: "{{ user }}"
-        group: "{{ user }}"
 
     - name: Download terragrunt binary.
       get_url:
@@ -23,5 +22,4 @@
         dest: "{{ home }}/.terragrunt/bin/terragrunt"
         mode: '0755'
         owner: "{{ user }}"
-        group: "{{ user }}"
         force: yes

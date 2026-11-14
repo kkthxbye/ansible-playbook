@@ -60,7 +60,6 @@
         state: directory
         mode: '0700'
         owner: "{{ user }}"
-        group: "{{ user }}"
 
     - name: Install kubectl bash completion.
       shell: "kubectl completion bash > /etc/bash_completion.d/kubectl"

@@ -86,7 +86,6 @@
         state: directory
         mode: '0700'
         owner: "{{ user }}"
-        group: "{{ user }}"
 
     - name: Generate Snowflake RSA private key.
       shell: "openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out {{ snowflake_private_key }} -nocrypt"
@@ -98,7 +97,6 @@
         path: "{{ snowflake_private_key }}"
         mode: '0600'
         owner: "{{ user }}"
-        group: "{{ user }}"
 
     - name: Generate Snowflake RSA public key.
       command: "openssl rsa -in {{ snowflake_private_key }} -pubout -out {{ snowflake_public_key }}"

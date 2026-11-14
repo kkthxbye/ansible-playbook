@@ -16,13 +16,11 @@
         state: directory
         mode: '0700'
         owner: "{{ user }}"
-        group: "{{ user }}"
 
     - name: Template ~/.config/rclone/rclone.conf.
       copy:
         dest: "{{ rclone_config_dir }}/rclone.conf"
         owner: "{{ user }}"
-        group: "{{ user }}"
         mode: '0600'
         content: |
           [s3]

@@ -75,9 +75,11 @@
         chdir: "{{ far2l_build_dir }}"
       when: far2l_clone is succeeded
 
-    - name: Create 'far' alias for far2l.
-      file:
-        src: /usr/local/bin/far2l
+    - name: Create 'far' wrapper for far2l.
+      copy:
         dest: /usr/local/bin/far
-        state: link
+        mode: '0755'
+        content: |
+          #!/bin/sh
+          exec /usr/local/bin/far2l --tty "$@"
       when: far2l_clone is succeeded

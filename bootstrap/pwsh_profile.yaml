@@ -53,7 +53,7 @@
       when: pwsh_include_target.stat.exists and not pwsh_include_target.stat.islnk
 
     - name: Install PowerShell profile via repo installer.
-      command: pwsh -File "{{ repo_dest }}/Install-Profile.ps1"
+      command: pwsh -NoProfile -NonInteractive -File "{{ repo_dest }}/Install-Profile.ps1"
       become_user: "{{ user }}"
       become: yes
       when:

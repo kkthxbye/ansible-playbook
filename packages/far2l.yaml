@@ -51,7 +51,6 @@
         path: "{{ far2l_build_dir }}"
         state: directory
         owner: "{{ user }}"
-        group: "{{ user }}"
       when: far2l_clone is succeeded
 
     - name: Configure far2l build.
@@ -78,7 +77,7 @@
 
     - name: Create 'far' alias for far2l.
       file:
-        src: /usr/bin/far2l
+        src: /usr/local/bin/far2l
         dest: /usr/local/bin/far
         state: link
       when: far2l_clone is succeeded
